@@ -1,0 +1,2 @@
+defmodule Library do
+end
