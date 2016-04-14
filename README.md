@@ -1,4 +1,4 @@
-# Lettersmash
+# LettersMash
 
-**TODO: Add description**
+A multiplayer LetterPress game in Elixir, Phoenix and Elm
 
