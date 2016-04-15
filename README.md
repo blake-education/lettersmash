@@ -7,6 +7,7 @@ A multiplayer LetterPress game in Elixir, Phoenix and Elm
 From http://elm-lang.org/install
 
 
+## Configure app
 
 ```
 > git clone git@github.com:blake-education/lettersmash.git
