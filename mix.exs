@@ -22,6 +22,8 @@ defmodule Lettersmash.Mixfile do
   # and cannot be accessed from applications inside the apps folder
   defp deps do
     [
+      {:earmark, "~> 0.1", only: :dev},
+      {:ex_doc, "~> 0.11", only: :dev},
       {:credo, "~> 0.3", only: [:dev, :test]}
     ]
   end
