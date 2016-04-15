@@ -14,7 +14,7 @@ From http://elm-lang.org/install
 > cd lettersmash
 > mix deps.get
 > cd apps/skateboard/
-> npm install --save elm-brunch
+> npm install
 > cd web/elm
 > elm package install evancz/elm-html
 > cd ../../../..
