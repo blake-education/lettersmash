@@ -34,13 +34,12 @@ type alias Letter =
 
 
 type alias Board =
-  List Letter
+  List (List Letter)
 
 
 type alias Model =
   { candidate : String
-  , board :
-      List (List Letter)
+  , board : Board
   , players : List Player
   }
 
