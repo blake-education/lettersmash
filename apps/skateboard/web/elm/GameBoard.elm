@@ -37,10 +37,15 @@ type alias Board =
   List (List Letter)
 
 
+type alias BoardState =
+  { board : Board
+  , players : List Player
+  }
+
+
 type alias Model =
   { candidate : String
-  , board : Board
-  , players : List Player
+  , boardState : BoardState
   }
 
 
@@ -55,7 +60,8 @@ type Action
 initialModel : Model
 initialModel =
   { candidate = ""
-  , board =
+  , boardState = {
+      board =
       [ [ { char = "A" }
         , { char = "G" }
         , { char = "S" }
@@ -87,11 +93,12 @@ initialModel =
         , { char = "R" }
         ]
       ]
-  , players =
+    , players =
       [ { name = "martin", score = 10 }
       , { name = "bob", score = 13 }
       , { name = "jane", score = 30 }
       ]
+    }
   }
 
 
@@ -128,10 +135,10 @@ view address model =
         [ h3 [] [ text "LettersMash" ] ]
     , div
         [ class "board col-md-8" ]
-        (List.map (boardRow address) model.board)
+        (List.map (boardRow address) model.boardState.board)
     , div
         [ class "col-md-4" ]
-        (List.map playerView model.players)
+        (List.map playerView model.boardState.players)
     , div
         [ class "col-md-12" ]
         [ button [ Events.onClick address Clear ] [ text "Clear" ]
