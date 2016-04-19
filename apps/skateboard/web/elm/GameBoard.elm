@@ -1,20 +1,34 @@
 module GameBoard (..) where
 
+import Task exposing (..)
+import Effects exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events as Events
 import List exposing (reverse, member)
-import StartApp.Simple
+import StartApp as StartApp
+
+import StartApp as StartApp
 
 
-main : Signal.Signal Html
-main =
-  StartApp.Simple.start
-    { model = initialModel
-    , view = view
+app : StartApp.App Model
+app =
+  StartApp.start
+    { init = init
     , update = update
+    , view = view
+    , inputs = []
     }
 
+
+main : Signal Html
+main =
+  app.html
+
+
+port tasks : Signal (Task Never ())
+port tasks =
+  app.tasks
 
 
 --MODELS
@@ -105,6 +119,11 @@ initialModel =
   }
 
 
+init : (Model, Effects Action)
+init =
+  (initialModel, Effects.none)
+
+
 
 --UPDATE
 appendLetter : Letter -> Candidate -> Candidate
@@ -114,20 +133,32 @@ appendLetter letter candidate =
   else
     reverse (letter :: reverse candidate)
 
-update : Action -> Model -> Model
+update : Action -> Model -> ( Model, Effects Action )
 update action model =
   case action of
     Submit word ->
-      model
+      (
+        model,
+        Effects.none
+      )
 
     Select letter ->
-      { model | candidate = appendLetter letter model.candidate }
+      (
+        { model | candidate = appendLetter letter model.candidate },
+        Effects.none
+      )
 
     Clear ->
-      { model | candidate = [] }
+      (
+        { model | candidate = [] },
+        Effects.none
+      )
 
     _ ->
-      model
+      (
+        model,
+        Effects.none
+      )
 
 
 
