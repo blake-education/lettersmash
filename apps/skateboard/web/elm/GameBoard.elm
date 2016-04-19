@@ -3,6 +3,7 @@ module GameBoard (..) where
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events as Events
+import List exposing (reverse, member)
 import StartApp.Simple
 
 
@@ -26,15 +27,17 @@ type alias Player =
 
 
 type alias Letter =
-  { char :
-      String
-      --, x : Int
-      --, y : Int
+  { char : String
+  , id: Int
   }
 
 
 type alias Board =
   List (List Letter)
+
+
+type alias Candidate =
+  List Letter
 
 
 type alias BoardState =
@@ -44,7 +47,7 @@ type alias BoardState =
 
 
 type alias Model =
-  { candidate : String
+  { candidate : Candidate
   , boardState : BoardState
   }
 
@@ -52,45 +55,45 @@ type alias Model =
 type Action
   = NoOp
   | Select Letter
-  | Submit String
+  | Submit Candidate
   | Clear
   | UpdateBoard Model
 
 
 initialModel : Model
 initialModel =
-  { candidate = ""
+  { candidate = []
   , boardState = {
       board =
-      [ [ { char = "A" }
-        , { char = "G" }
-        , { char = "S" }
-        , { char = "Z" }
-        , { char = "L" }
+      [ [ { char = "A", id = 0 }
+        , { char = "G", id = 1 }
+        , { char = "S", id = 2 }
+        , { char = "Z", id = 3 }
+        , { char = "L", id = 4 }
         ]
-      , [ { char = "L" }
-        , { char = "B" }
-        , { char = "P" }
-        , { char = "I" }
-        , { char = "U" }
+      , [ { char = "L", id = 5 }
+        , { char = "B", id = 6 }
+        , { char = "P", id = 7 }
+        , { char = "I", id = 8 }
+        , { char = "U", id = 9 }
         ]
-      , [ { char = "T" }
-        , { char = "T" }
-        , { char = "D" }
-        , { char = "F" }
-        , { char = "O" }
+      , [ { char = "T", id = 10 }
+        , { char = "T", id = 11 }
+        , { char = "D", id = 12 }
+        , { char = "F", id = 13 }
+        , { char = "O", id = 14 }
         ]
-      , [ { char = "C" }
-        , { char = "D" }
-        , { char = "D" }
-        , { char = "G" }
-        , { char = "U" }
+      , [ { char = "C", id = 15 }
+        , { char = "D", id = 16 }
+        , { char = "D", id = 17 }
+        , { char = "G", id = 18 }
+        , { char = "U", id = 19 }
         ]
-      , [ { char = "X" }
-        , { char = "D" }
-        , { char = "U" }
-        , { char = "E" }
-        , { char = "R" }
+      , [ { char = "X", id = 20 }
+        , { char = "D", id = 21 }
+        , { char = "U", id = 22 }
+        , { char = "E", id = 23 }
+        , { char = "R", id = 24 }
         ]
       ]
     , players =
@@ -104,7 +107,12 @@ initialModel =
 
 
 --UPDATE
-
+appendLetter : Letter -> Candidate -> Candidate
+appendLetter letter candidate =
+  if member letter candidate then
+    candidate
+  else
+    reverse (letter :: reverse candidate)
 
 update : Action -> Model -> Model
 update action model =
@@ -113,10 +121,10 @@ update action model =
       model
 
     Select letter ->
-      { model | candidate = model.candidate ++ letter.char }
+      { model | candidate = appendLetter letter model.candidate }
 
     Clear ->
-      { model | candidate = "" }
+      { model | candidate = [] }
 
     _ ->
       model
@@ -143,7 +151,7 @@ view address model =
         [ class "col-md-12" ]
         [ button [ Events.onClick address Clear ] [ text "Clear" ]
         , button [ Events.onClick address (Submit model.candidate) ] [ text "Submit" ]
-        , h2 [] [ text model.candidate ]
+        , h2 [] [ text (List.foldl (\c a -> a ++ c.char) "" model.candidate) ]
         ]
     ]
 
