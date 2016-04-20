@@ -5,7 +5,7 @@ import Effects exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events as Events
-import List exposing (reverse, member)
+import List exposing (reverse, member, length)
 import StartApp as StartApp
 
 
@@ -148,11 +148,25 @@ view address model =
         (List.map playerView model.boardState.players)
     , div
         [ class "col-md-12" ]
-        [ button [ Events.onClick address Clear ] [ text "Clear" ]
-        , button [ Events.onClick address Submit ] [ text "Submit" ]
+        [ button
+            [ disabled (hideClear model.candidate), Events.onClick address Clear ]
+            [ text "Clear" ]
+        , button
+            [ disabled (hideSubmit model.candidate), Events.onClick address Submit ]
+            [ text "Submit" ]
         , h2 [] [ text (List.foldl (\c a -> a ++ c.letter) "" model.candidate) ]
         ]
     ]
+
+
+hideSubmit : Candidate -> Bool
+hideSubmit candidate =
+  length candidate < 4
+
+
+hideClear : Candidate -> Bool
+hideClear candidate =
+  length candidate == 0
 
 
 playerView : Player -> Html
