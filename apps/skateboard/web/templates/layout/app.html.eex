@@ -13,6 +13,21 @@
 
   <body>
     <div class="container">
+      <header class="header">
+        <nav role="navigation">
+          <ul class="nav nav-pills pull-right">
+            <%= if logged_in?(@conn) do %>
+              <li><%= current_user(@conn).name %></li>
+              <li><%= link "Logout", to: session_path(@conn, :delete), method: :delete %></li>
+            <% else %>
+              <li><%= link "Login",    to: "/login" %></li>
+              <li><%= link "Register", to: registration_path(@conn, :new) %></li>
+            <% end %>
+          </ul>
+        </nav>
+        <span class="logo"></span>
+      </header>
+
       <p class="alert alert-info" role="alert"><%= get_flash(@conn, :info) %></p>
       <p class="alert alert-danger" role="alert"><%= get_flash(@conn, :error) %></p>
 
