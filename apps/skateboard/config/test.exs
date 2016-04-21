@@ -12,6 +12,8 @@ config :logger, level: :warn
 # Configure your database
 config :skateboard, Skateboard.Repo,
   adapter: Ecto.Adapters.Postgres,
+  username: "postgres",
+  password: "postgres",
   database: "skateboard_test",
   hostname: "localhost",
   pool: Ecto.Adapters.SQL.Sandbox
