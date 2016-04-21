@@ -41,6 +41,7 @@ defmodule Skateboard.Web do
 
   def view do
     quote do
+      import Skateboard.Session, only: [current_user: 1, logged_in?: 1]
       use Phoenix.View, root: "web/templates"
 
       # Import convenience functions from controllers
