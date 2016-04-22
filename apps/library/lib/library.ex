@@ -7,6 +7,7 @@ defmodule Library do
     import Supervisor.Spec, warn: false
 
     children = [
+      supervisor(Library.Dictionary, [[], [name: :dictionary]]),
       # Define workers and child supervisors to be supervised
       # worker(Library.Worker, [arg1, arg2, arg3]),
     ]
