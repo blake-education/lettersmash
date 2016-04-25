@@ -15,6 +15,8 @@ From http://elm-lang.org/install
 > mix deps.get
 > cd apps/skateboard/
 > npm install
+> mix ecto.create
+> mix ecto.migrate
 > cd web/elm
 > elm package install evancz/elm-html
 > cd ../../../..
