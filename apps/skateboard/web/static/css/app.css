@@ -77,13 +77,18 @@ form.link, form.button {
   }
 }
 
-.board {
-  background-color: #e4F3F9;
+.candidate {
+  font-family: "Courier";
+  font-size: 60px;
 }
 
 .letter {
-  background-color: #A44485;
-  height: 60px;
+  background-color: LightGray;
+  line-height: 1.10;
+  padding-left: 30px;
+  padding-right: 30px;
   text-align: center;
-  width: 60px;
+  overflow: auto;
+  font-family: "Courier";
+  font-size: 60px;
 }

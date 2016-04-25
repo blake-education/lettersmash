@@ -25,7 +25,7 @@
             <% end %>
           </ul>
         </nav>
-        <span class="logo"></span>
+        <h1>LettersMash</h1>
       </header>
 
       <p class="alert alert-info" role="alert"><%= get_flash(@conn, :info) %></p>

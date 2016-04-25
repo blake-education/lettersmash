@@ -1,11 +1,13 @@
 module GameBoard (..) where
 
+import Letter exposing (..)
 import Task exposing (..)
 import Effects exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events as Events
-import List exposing (reverse, member, length)
+import List exposing (reverse, member, length, filter)
+import Array exposing (fromList, toList, get)
 import StartApp as StartApp
 
 
@@ -37,16 +39,6 @@ type alias Player =
   { name : String
   , score : Int
   }
-
-
-type alias Letter =
-  { letter : String
-  , id : Int
-  }
-
-
-type alias Board =
-  List (List Letter)
 
 
 type alias Candidate =
@@ -138,9 +130,6 @@ view address model =
   div
     [ class "row" ]
     [ div
-        [ class "jumbotron" ]
-        [ h3 [] [ text "LettersMash" ] ]
-    , div
         [ class "board col-md-8" ]
         (List.map (boardRow address) model.boardState.board)
     , div
@@ -154,7 +143,7 @@ view address model =
         , button
             [ disabled (hideSubmit model.candidate), Events.onClick address Submit ]
             [ text "Submit" ]
-        , h2 [] [ text (List.foldl (\c a -> a ++ c.letter) "" model.candidate) ]
+        , h2 [ class "candidate" ] [ text (List.foldl (\c a -> a ++ c.letter) "" model.candidate) ]
         ]
     ]
 
@@ -176,7 +165,7 @@ playerView player =
     [ h3 [] [ text (player.name ++ " " ++ toString (player.score)) ] ]
 
 
-boardRow : Signal.Address Action -> List Letter -> Html
+boardRow : Signal.Address Action -> BoardRow -> Html
 boardRow address letters =
   div
     []
@@ -184,10 +173,13 @@ boardRow address letters =
 
 
 letterView : Signal.Address Action -> Letter -> Html
-letterView address model =
+letterView address letter =
   span
-    [ class "letter", Events.onClick address (Select model), style [ ( "font-size", "150%" ) ] ]
-    [ text model.letter ]
+    [ class "letter"
+    , letterStyle letter
+    , Events.onClick address (Select letter)
+    ]
+    [ text (letter.letter) ]
 
 
 

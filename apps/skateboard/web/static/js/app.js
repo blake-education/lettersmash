@@ -25,35 +25,35 @@ const initialState = {
     {
         board:
           [ [
-            { letter : "M", id : 0 }
-            , { letter : "U", id : 1 }
-            , { letter : "S", id : 2 }
-            , { letter : "Z", id : 3 }
-            , { letter : "L", id : 4 }
+            { letter : "M", id : 0, owner: 1 }
+            , { letter : "U", id : 1, owner: 6 }
+            , { letter : "S", id : 2, owner: 6 }
+            , { letter : "Z", id : 3, owner: 5 }
+            , { letter : "L", id : 4, owner: 1 }
             ]
-          , [ { letter : "L", id : 5 }
-            , { letter : "B", id : 6 }
-            , { letter : "P", id : 7 }
-            , { letter : "I", id : 8 }
-            , { letter : "U", id : 9 }
+          , [ { letter : "L", id : 5, owner: 1 }
+            , { letter : "B", id : 6, owner: 1 }
+            , { letter : "P", id : 7, owner: 1 }
+            , { letter : "I", id : 8, owner: 5 }
+            , { letter : "U", id : 9, owner: 5 }
             ]
-          , [ { letter : "T", id : 10 }
-            , { letter : "T", id : 11 }
-            , { letter : "D", id : 12 }
-            , { letter : "F", id : 13 }
-            , { letter : "O", id : 14 }
+          , [ { letter : "T", id : 10, owner: 1 }
+            , { letter : "T", id : 11, owner: 1 }
+            , { letter : "D", id : 12, owner: 4 }
+            , { letter : "F", id : 13, owner: 4 }
+            , { letter : "O", id : 14, owner: 0 }
             ]
-          , [ { letter : "C", id : 15 }
-            , { letter : "D", id : 16 }
-            , { letter : "D", id : 17 }
-            , { letter : "G", id : 18 }
-            , { letter : "U", id : 19 }
+          , [ { letter : "C", id : 15, owner: 0 }
+            , { letter : "D", id : 16, owner: 2 }
+            , { letter : "D", id : 17, owner: 2 }
+            , { letter : "G", id : 18, owner: 4 }
+            , { letter : "U", id : 19, owner: 2 }
             ]
-          , [ { letter : "X", id : 20 }
-            , { letter : "D", id : 21 }
-            , { letter : "U", id : 22 }
-            , { letter : "E", id : 23 }
-            , { letter : "R", id : 24 }
+          , [ { letter : "X", id : 20, owner: 3 }
+            , { letter : "D", id : 21, owner: 3 }
+            , { letter : "U", id : 22, owner: 3 }
+            , { letter : "E", id : 23, owner: 2 }
+            , { letter : "R", id : 24, owner: 2 }
             ]
           ]
           ,
