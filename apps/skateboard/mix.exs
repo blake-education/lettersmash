@@ -41,7 +41,8 @@ defmodule Skateboard.Mixfile do
      {:phoenix_live_reload, "~> 1.0", only: :dev},
      {:gettext, "~> 0.9"},
      {:cowboy, "~> 1.0"},
-     {:library, in_umbrella: true}]
+     {:library, in_umbrella: true},
+     {:comeonin, "~> 1.0"},]
   end
 
   # Aliases are shortcut or tasks specific to the current project.

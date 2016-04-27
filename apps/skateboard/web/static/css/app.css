@@ -76,3 +76,14 @@ form.link, form.button {
     border-bottom: 0;
   }
 }
+
+.board {
+  background-color: #e4F3F9;
+}
+
+.letter {
+  background-color: #A44485;
+  height: 60px;
+  text-align: center;
+  width: 60px;
+}
