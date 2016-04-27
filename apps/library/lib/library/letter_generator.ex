@@ -1,4 +1,7 @@
-defmodule LetterGenerator do
+defmodule Library.LetterGenerator do
+  @moduledoc """
+    Generate a list of random letters based on self defined frequency.
+  """
 
   def generate(count) when count <= 0, do: []
   def generate(num_of_letters) do
