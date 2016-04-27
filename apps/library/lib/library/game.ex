@@ -1,5 +1,7 @@
 defmodule Library.Game do
   use GenServer
+  @number_of_letters 25
+
   @moduledoc """
 
     _Example_
@@ -88,7 +90,7 @@ defmodule Library.Game do
   end
 
   defp build_board do
-    LetterGenerator.generate(25)
+    LetterGenerator.generate(@number_of_letters)
     |> Stream.with_index
     |> Enum.map(fn({x, i}) -> {x, i, :no_player} end)
   end
