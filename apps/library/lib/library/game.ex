@@ -93,6 +93,8 @@ defmodule Library.Game do
   defp build_board do
     @generator.generate(@number_of_letters)
     |> Stream.with_index
-    |> Enum.map(fn({x, i}) -> {x, i, :no_player} end)
+    |> Enum.map(fn({letter, index}) ->
+      %{id: index + 1, letter: letter, owner: :no_player}
+    end)
   end
 end
