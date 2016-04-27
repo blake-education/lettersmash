@@ -8,7 +8,7 @@ defmodule Library.Game do
     iex> Library.Game.add_player(pid, %{id: 1, name: "abc"})
     :ok
     iex> Library.Game.list_state(pid)
-    %{board: [], players: [%{id: 1}]}
+    %{board: [], players: [%{id: 1, name: "abc"}]}
     iex> Library.Game.add_player(pid, %{id: 2, name: "dododo"})
     :ok
     iex> Library.Game.list_state(pid)
