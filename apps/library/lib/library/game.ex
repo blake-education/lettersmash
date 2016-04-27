@@ -80,12 +80,12 @@ defmodule Library.Game do
     {
       :noreply,
       %{
-        board_state | players: remove_player(board_state.players, player)
+        board_state | players: remove_player_from_state(board_state.players, player)
       }
     }
   end
 
-  defp remove_player(all_players, player) do
+  defp remove_player_from_state(all_players, player) do
     Enum.reject(all_players, &(&1.id == player.id))
   end
 end
