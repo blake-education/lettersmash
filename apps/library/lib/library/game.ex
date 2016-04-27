@@ -37,7 +37,7 @@ defmodule Library.Game do
     {
       :ok,
       %{
-        board: [],
+        board: build_board,
         players: []
       }
     }
@@ -85,5 +85,11 @@ defmodule Library.Game do
 
   defp remove_player_from_state(all_players, player) do
     Enum.reject(all_players, &(&1.id == player.id))
+  end
+
+  defp build_board do
+    LetterGenerator.generate(25)
+    |> Stream.with_index
+    |> Enum.map(fn({x, i}) -> {x, i, :no_player} end)
   end
 end
