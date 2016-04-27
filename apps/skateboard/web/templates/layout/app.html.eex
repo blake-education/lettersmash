@@ -17,6 +17,7 @@
         <nav role="navigation">
           <ul class="nav nav-pills pull-right">
             <%= if logged_in?(@conn) do %>
+              <script>window.userToken = "<%= current_user(@conn).id %>"</script>
               <li><%= current_user(@conn).name %></li>
               <li><%= link "Logout", to: session_path(@conn, :delete), method: :delete %></li>
             <% else %>
