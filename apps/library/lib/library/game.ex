@@ -17,9 +17,7 @@ defmodule Library.Game do
     %{board: [], players: [%{id: 1, name: "abc"}]}
   """
 
-  def start_link do
-    GenServer.start_link(__MODULE__, :ok)
-  end
+  def start_link, do: GenServer.start_link(__MODULE__, :ok)
 
   def submit_word(pid, word, player) when is_binary(word) do
     GenServer.call(pid, {:submit_word, word, player})
