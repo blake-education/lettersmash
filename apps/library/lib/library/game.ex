@@ -35,7 +35,7 @@ defmodule Library.Game do
 
   def list_state(pid), do: GenServer.call(pid, :list_state)
 
-  def init(_) do
+  def init(:ok) do
     {
       :ok,
       %{
