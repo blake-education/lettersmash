@@ -19,6 +19,9 @@ defmodule Skateboard.UserSocket do
   #
   # See `Phoenix.Token` documentation for examples in
   # performing token verification on connect.
+  def connect(%{"token" => "undefined"}, socket) do
+    {:error, socket}
+  end
   def connect(%{"token" => user_id}, socket) do
     {:ok, assign(socket, :user_id, user_id)}
   end

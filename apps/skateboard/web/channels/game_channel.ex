@@ -1,5 +1,6 @@
 defmodule Skateboard.GameChannel do
   use Phoenix.Channel
+  alias Skateboard.User
 
   def join("game:new", _message, socket) do
     id = socket.assigns.user_id
