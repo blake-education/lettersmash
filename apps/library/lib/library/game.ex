@@ -20,13 +20,13 @@ defmodule Library.Game do
     %{board: [], players: [%{id: 1, name: "abc"}]}
   """
 
-  def start_link, do: GenServer.start_link(__MODULE__, :ok)
+  def start_link, do: GenServer.start_link(__MODULE__, :ok, name: :current_game)
 
   def submit_word(pid, word, player) when is_binary(word) do
     GenServer.call(pid, {:submit_word, word, player})
   end
 
-  def add_player(pid, player) when is_map(player) do
+  def add_player(pid, player) do
     GenServer.cast(pid, {:add_player, player})
   end
 
@@ -94,7 +94,8 @@ defmodule Library.Game do
     @generator.generate(@number_of_letters)
     |> Stream.with_index
     |> Enum.map(fn({letter, index}) ->
-      %{id: index + 1, letter: letter, owner: :no_player}
+      %{id: index + 1, letter: letter, owner: 0}
     end)
+    |> Enum.chunk(5)
   end
 end

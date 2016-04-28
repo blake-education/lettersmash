@@ -86,5 +86,5 @@ channel.join()
 
 channel.on("board_state", board_state => {
   console.log("board state: ", board_state);
-  elmApp.ports.boardState.send(board_state.board);
+  elmApp.ports.boardState.send(board_state);
 })
