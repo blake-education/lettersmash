@@ -22,7 +22,7 @@ defmodule Library.Game do
 
   def start_link, do: GenServer.start_link(__MODULE__, :ok, name: :current_game)
 
-  def submit_word(pid, word, player) when is_binary(word) do
+  def submit_word(pid, word, player) do
     GenServer.call(pid, {:submit_word, word, player})
   end
 
@@ -41,7 +41,8 @@ defmodule Library.Game do
       :ok,
       %{
         board: build_board,
-        players: []
+        players: [],
+        next_index: 1
       }
     }
   end
@@ -56,12 +57,22 @@ defmodule Library.Game do
     # do:  {:reply, {:ok, word}, board_state}
     # else {:reply, {:error, "word not valid", board_state}}
 
-
     if true do
-      {:reply, {:ok, word}, board_state}
+      new_board = Enum.reduce(word, board_state.board, fn(letter, acc) ->
+        replace_letter(letter, player, acc) 
+      end)
+
+      new_state = %{board_state | board: new_board}
+
+      {:reply, {:ok, word}, new_state}
     else
       {:reply, {:error, "reason"}, board_state}
     end
+  end
+
+  defp replace_letter(letter, player, board) do
+    new_letter = %{letter | "owner" => player}
+    List.insert_at(board, Map.get(letter, "id"), new_letter)
   end
 
   def handle_call(:list_state, _from, board_state) do
@@ -69,10 +80,12 @@ defmodule Library.Game do
   end
 
   def handle_cast({:add_player, player}, board_state) do
+    new_player = Map.put_new(player, :index, board_state.next_index)
+
     {
       :noreply,
       %{
-        board_state | players: board_state.players ++ [player]
+        board_state | players: board_state.players ++ [new_player], next_index: (board_state.next_index + 1)
       }
     }
   end
@@ -94,7 +107,7 @@ defmodule Library.Game do
     @generator.generate(@number_of_letters)
     |> Stream.with_index
     |> Enum.map(fn({letter, index}) ->
-      %{id: index + 1, letter: letter, owner: 0}
+      %{id: index + 1, letter: letter, owner: 1}
     end)
     |> Enum.chunk(5)
   end

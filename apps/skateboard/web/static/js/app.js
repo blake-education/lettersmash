@@ -67,14 +67,6 @@ const elmApp = Elm.embed(Elm.GameBoard, elmDiv, initialState);
 /* we will do this via channels eventually*/
 //elmApp.ports.boardState.send(initialState.boardState);
 
-/* this will send the letters back to the server via a channel */
-elmApp.ports.submit.subscribe( function(letters) {
-  let str = letters.reduce( function(acc, letter, index, letters) {
-    return acc + letter.letter;
-  }, "");
-  console.log(str);
-});
-
 // CHANNELS
 let channel = socket.channel("game:new", {})
 channel.join()
@@ -88,3 +80,14 @@ channel.on("board_state", board_state => {
   console.log("board state: ", board_state);
   elmApp.ports.boardState.send(board_state);
 })
+
+/* this will send the letters back to the server via a channel */
+elmApp.ports.submit.subscribe( function(letters) {
+  let str = letters.reduce( function(acc, letter, index, letters) {
+    return acc + letter.letter;
+  }, "");
+  console.log(str);
+
+  channel.push("submit_word", letters);
+});
+

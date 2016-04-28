@@ -7,7 +7,6 @@ defmodule Skateboard.GameChannel do
     id = socket.assigns.user_id
     user = Skateboard.Repo.get(User, id)
 
-    #game = find_or_create_game
     game = :current_game
     user_map = %{id: user.id, name: user.name, score: 0}
     Game.add_player(game, user_map)
@@ -22,8 +21,12 @@ defmodule Skateboard.GameChannel do
     {:reply, {:ok, payload}, socket}
   end
 
-  defp find_or_create_game do
-    {:ok, game} = Game.start_link 
-    game
+  def handle_in("submit_word", letters, socket) do
+    game = socket.assigns.game
+    Game.submit_word(game, letters, socket.assigns.user_id)
+
+    push(socket, "board_state", Game.list_state(game))
+
+    {:reply, {:ok, letters}, socket}
   end
 end
