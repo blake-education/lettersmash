@@ -2,7 +2,7 @@ defmodule Skateboard.UserSocket do
   use Phoenix.Socket
 
   ## Channels
-  # channel "rooms:*", Skateboard.RoomChannel
+  channel "game:*", Skateboard.GameChannel
 
   ## Transports
   transport :websocket, Phoenix.Transports.WebSocket
@@ -19,8 +19,11 @@ defmodule Skateboard.UserSocket do
   #
   # See `Phoenix.Token` documentation for examples in
   # performing token verification on connect.
-  def connect(_params, socket) do
-    {:ok, socket}
+  def connect(%{"token" => "undefined"}, socket) do
+    {:error, socket}
+  end
+  def connect(%{"token" => user_id}, socket) do
+    {:ok, assign(socket, :user_id, user_id)}
   end
 
   # Socket id's are topics that allow you to identify all sockets for a given user:
@@ -33,5 +36,5 @@ defmodule Skateboard.UserSocket do
   #     Skateboard.Endpoint.broadcast("users_socket:#{user.id}", "disconnect", %{})
   #
   # Returning `nil` makes this socket anonymous.
-  def id(_socket), do: nil
+  def id(socket), do: "users_socket:#{socket.assigns.user_id}"
 end

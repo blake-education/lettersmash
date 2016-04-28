@@ -18,7 +18,7 @@ import "phoenix_html"
 // Local files can be imported directly using relative
 // paths "./socket" or full ones "web/static/js/socket".
 
-// import socket from "./socket"
+import socket from "./socket"
 
 const initialState = {
     boardState:
@@ -65,7 +65,21 @@ const elmDiv = document.getElementById('elm-container');
 const elmApp = Elm.embed(Elm.GameBoard, elmDiv, initialState);
 
 /* we will do this via channels eventually*/
-elmApp.ports.boardState.send(initialState.boardState);
+//elmApp.ports.boardState.send(initialState.boardState);
+
+// CHANNELS
+let channel = socket.channel("game:new", {})
+channel.join()
+  .receive("ok", resp => {
+    console.log("Joined successfully", resp);
+    channel.push("board_state")
+  })
+  .receive("error", resp => { console.log("Unable to join", resp) })
+
+channel.on("board_state", board_state => {
+  console.log("board state: ", board_state);
+  elmApp.ports.boardState.send(board_state);
+})
 
 /* this will send the letters back to the server via a channel */
 elmApp.ports.submit.subscribe( function(letters) {
@@ -73,4 +87,7 @@ elmApp.ports.submit.subscribe( function(letters) {
     return acc + letter.letter;
   }, "");
   console.log(str);
+
+  channel.push("submit_word", letters);
 });
+
