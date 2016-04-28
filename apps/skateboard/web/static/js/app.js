@@ -65,7 +65,7 @@ const elmDiv = document.getElementById('elm-container');
 const elmApp = Elm.embed(Elm.GameBoard, elmDiv, initialState);
 
 /* we will do this via channels eventually*/
-elmApp.ports.boardState.send(initialState.boardState);
+//elmApp.ports.boardState.send(initialState.boardState);
 
 /* this will send the letters back to the server via a channel */
 elmApp.ports.submit.subscribe( function(letters) {
@@ -74,3 +74,17 @@ elmApp.ports.submit.subscribe( function(letters) {
   }, "");
   console.log(str);
 });
+
+// CHANNELS
+let channel = socket.channel("game:new", {})
+channel.join()
+  .receive("ok", resp => {
+    console.log("Joined successfully", resp);
+    channel.push("board_state")
+  })
+  .receive("error", resp => { console.log("Unable to join", resp) })
+
+channel.on("board_state", board_state => {
+  console.log("board state: ", board_state);
+  elmApp.ports.boardState.send(board_state.board);
+})
