@@ -12,8 +12,8 @@ defmodule Library.Dictionary do
   ### Server callbacks
 
   def init([]) do
-    {:ok, words} = File.read("/usr/share/dict/words")
-    {:ok, format_words(words)}
+    with {:ok, words} <- File.read("/usr/share/dict/words"),
+      do: {:ok, format_words(words)}
   end
 
   defp format_words(words) do
