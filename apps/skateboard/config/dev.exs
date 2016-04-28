@@ -35,8 +35,8 @@ config :phoenix, :stacktrace_depth, 20
 # Configure your database
 config :skateboard, Skateboard.Repo,
   adapter: Ecto.Adapters.Postgres,
-  username: "shamim",
-  password: "",
+  username: "postgres",
+  password: "postgres",
   database: "skateboard_dev",
   hostname: "localhost",
   pool_size: 10
