@@ -26,6 +26,7 @@ defmodule Skateboard.ConnCase do
       import Ecto.Query, only: [from: 1, from: 2]
 
       import Skateboard.Router.Helpers
+      import Skateboard.TestHelpers
 
       # The default endpoint for testing
       @endpoint Skateboard.Endpoint

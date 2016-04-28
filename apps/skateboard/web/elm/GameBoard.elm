@@ -5,9 +5,7 @@ import Effects exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events as Events
-import List exposing (reverse, member)
-import StartApp as StartApp
-
+import List exposing (reverse, member, length)
 import StartApp as StartApp
 
 
@@ -17,7 +15,7 @@ app =
     { init = init
     , update = update
     , view = view
-    , inputs = []
+    , inputs = [ incomingActions ]
     }
 
 
@@ -31,6 +29,7 @@ port tasks =
   app.tasks
 
 
+
 --MODELS
 
 
@@ -41,8 +40,8 @@ type alias Player =
 
 
 type alias Letter =
-  { char : String
-  , id: Int
+  { letter : String
+  , id : Int
   }
 
 
@@ -69,63 +68,30 @@ type alias Model =
 type Action
   = NoOp
   | Select Letter
-  | Submit Candidate
+  | Submit
   | Clear
-  | UpdateBoard Model
+  | UpdateBoard BoardState
 
 
 initialModel : Model
 initialModel =
   { candidate = []
-  , boardState = {
-      board =
-      [ [ { char = "A", id = 0 }
-        , { char = "G", id = 1 }
-        , { char = "S", id = 2 }
-        , { char = "Z", id = 3 }
-        , { char = "L", id = 4 }
-        ]
-      , [ { char = "L", id = 5 }
-        , { char = "B", id = 6 }
-        , { char = "P", id = 7 }
-        , { char = "I", id = 8 }
-        , { char = "U", id = 9 }
-        ]
-      , [ { char = "T", id = 10 }
-        , { char = "T", id = 11 }
-        , { char = "D", id = 12 }
-        , { char = "F", id = 13 }
-        , { char = "O", id = 14 }
-        ]
-      , [ { char = "C", id = 15 }
-        , { char = "D", id = 16 }
-        , { char = "D", id = 17 }
-        , { char = "G", id = 18 }
-        , { char = "U", id = 19 }
-        ]
-      , [ { char = "X", id = 20 }
-        , { char = "D", id = 21 }
-        , { char = "U", id = 22 }
-        , { char = "E", id = 23 }
-        , { char = "R", id = 24 }
-        ]
-      ]
-    , players =
-      [ { name = "martin", score = 10 }
-      , { name = "bob", score = 13 }
-      , { name = "jane", score = 30 }
-      ]
-    }
+  , boardState =
+      { board = []
+      , players = []
+      }
   }
 
 
-init : (Model, Effects Action)
+init : ( Model, Effects Action )
 init =
-  (initialModel, Effects.none)
+  ( initialModel, Effects.none )
 
 
 
 --UPDATE
+
+
 appendLetter : Letter -> Candidate -> Candidate
 appendLetter letter candidate =
   if member letter candidate then
@@ -133,31 +99,33 @@ appendLetter letter candidate =
   else
     reverse (letter :: reverse candidate)
 
+
 update : Action -> Model -> ( Model, Effects Action )
 update action model =
   case action of
-    Submit word ->
-      (
-        model,
-        Effects.none
+    Submit ->
+      ( model
+      , sendSubmit model.candidate
       )
 
     Select letter ->
-      (
-        { model | candidate = appendLetter letter model.candidate },
-        Effects.none
+      ( { model | candidate = appendLetter letter model.candidate }
+      , Effects.none
       )
 
     Clear ->
-      (
-        { model | candidate = [] },
-        Effects.none
+      ( { model | candidate = [] }
+      , Effects.none
+      )
+
+    UpdateBoard boardState ->
+      ( { model | boardState = boardState }
+      , Effects.none
       )
 
     _ ->
-      (
-        model,
-        Effects.none
+      ( model
+      , Effects.none
       )
 
 
@@ -180,18 +148,32 @@ view address model =
         (List.map playerView model.boardState.players)
     , div
         [ class "col-md-12" ]
-        [ button [ Events.onClick address Clear ] [ text "Clear" ]
-        , button [ Events.onClick address (Submit model.candidate) ] [ text "Submit" ]
-        , h2 [] [ text (List.foldl (\c a -> a ++ c.char) "" model.candidate) ]
+        [ button
+            [ disabled (hideClear model.candidate), Events.onClick address Clear ]
+            [ text "Clear" ]
+        , button
+            [ disabled (hideSubmit model.candidate), Events.onClick address Submit ]
+            [ text "Submit" ]
+        , h2 [] [ text (List.foldl (\c a -> a ++ c.letter) "" model.candidate) ]
         ]
     ]
+
+
+hideSubmit : Candidate -> Bool
+hideSubmit candidate =
+  length candidate < 4
+
+
+hideClear : Candidate -> Bool
+hideClear candidate =
+  length candidate == 0
 
 
 playerView : Player -> Html
 playerView player =
   div
     []
-    [ h3 [] [ text player.name ] ]
+    [ h3 [] [ text (player.name ++ " " ++ toString (player.score)) ] ]
 
 
 boardRow : Signal.Address Action -> List Letter -> Html
@@ -205,8 +187,47 @@ letterView : Signal.Address Action -> Letter -> Html
 letterView address model =
   span
     [ class "letter", Events.onClick address (Select model), style [ ( "font-size", "150%" ) ] ]
-    [ text model.char ]
+    [ text model.letter ]
 
 
 
 --SIGNALS
+-- submit a word to the server
+
+
+port submit : Signal Candidate
+port submit =
+  submitMailbox.signal
+
+
+submitMailbox : Signal.Mailbox Candidate
+submitMailbox =
+  Signal.mailbox []
+
+
+
+-- update the state of the board and players
+
+
+port boardState : Signal BoardState
+
+
+
+--port boardState =
+--Signal BoardState
+
+
+incomingActions : Signal Action
+incomingActions =
+  Signal.map UpdateBoard boardState
+
+
+
+-- EFFECTS
+
+
+sendSubmit : Candidate -> Effects Action
+sendSubmit letters =
+  Signal.send submitMailbox.address letters
+    |> Effects.task
+    |> Effects.map (always NoOp)
