@@ -2,9 +2,8 @@ module Letter (..) where
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import List exposing (..)
-import Array exposing (..)
-
+import List exposing (reverse, member, length, filter)
+import Array exposing (fromList, toList, get)
 
 colors : List String
 colors =
