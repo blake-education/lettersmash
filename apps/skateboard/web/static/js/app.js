@@ -57,7 +57,7 @@ const initialState = {
             ]
           ]
           ,
-        players: [{ name: "james", score: 10}, {name: "martin", score: 5}]
+        players: [{ name: "james", score: 10}, {name: "martin", score: 5}, {name: "emily", score: 25}, {name: "brian", score: 2}]
     }
 };
 
