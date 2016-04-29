@@ -23,9 +23,16 @@ defmodule Skateboard.GameChannel do
 
   def handle_in("submit_word", letters, socket) do
     game = socket.assigns.game
+    
+    # TODO - branch on success of word submission
     Game.submit_word(game, letters, socket.assigns.user_id)
 
-    push(socket, "board_state", Game.list_state(game))
+
+
+    # success - broadcast the new board
+    broadcast! socket, "board_state", Game.list_state(game)
+    # failure - send fail back to the client
+    # send socket, "submission_failed"
 
     {:reply, :ok, socket}
   end
