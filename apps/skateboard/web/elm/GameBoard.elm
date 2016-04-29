@@ -131,7 +131,7 @@ view address model =
     [ class "row" ]
     [ div
         [ class "board col-md-8" ]
-        (List.map (boardRow address) model.boardState.board)
+        (List.map (letterView address) model.boardState.board)
     , div
         [ class "col-md-4" ]
         (List.map playerView model.boardState.players)
