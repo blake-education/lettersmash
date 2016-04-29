@@ -41,11 +41,15 @@ defmodule Skateboard.GameChannel do
     Enum.reduce(letters, "", &(&2 <> &1["letter"]))
   end
 
-    # success - broadcast the new board
-    broadcast! socket, "board_state", Game.list_state(game)
-    # failure - send fail back to the client
-    # send socket, "submission_failed"
+  def terminate(_message, socket) do
+    id = socket.assigns.user_id
+    user = Skateboard.Repo.get(User, id)
+    user_map = %{id: user.id, name: user.name, score: 0}
+
+    game = socket.assigns.game
+    Game.remove_player(game, user_map)
 
     {:reply, :ok, socket}
   end
+
 end
