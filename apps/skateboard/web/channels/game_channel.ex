@@ -2,6 +2,7 @@ defmodule Skateboard.GameChannel do
   use Phoenix.Channel
   alias Skateboard.User
   alias Library.Game
+  alias Library.Dictionary
 
   def join("game:new", _message, socket) do
     id = socket.assigns.user_id
@@ -22,12 +23,23 @@ defmodule Skateboard.GameChannel do
   end
 
   def handle_in("submit_word", letters, socket) do
-    game = socket.assigns.game
-    
-    # TODO - branch on success of word submission
-    Game.submit_word(game, letters, socket.assigns.user_id)
+    {validity, _} = Dictionary.check_word word(letters)
+    case validity do
+      :invalid ->
+        push(socket, "submission_failed", %{})
+      :valid ->
+        game = socket.assigns.game
+        Game.submit_word(game, letters, socket.assigns.user_id)
+        push(socket, "submission_successful", %{})
+        broadcast!(socket, "board_state", Game.display_state(game))
+    end
 
+    {:reply, :ok, socket}
+  end
 
+  defp word(letters) do
+    Enum.reduce(letters, "", &(&2 <> &1["letter"]))
+  end
 
     # success - broadcast the new board
     broadcast! socket, "board_state", Game.list_state(game)
