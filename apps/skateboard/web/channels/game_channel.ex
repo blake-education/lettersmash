@@ -17,7 +17,7 @@ defmodule Skateboard.GameChannel do
 
   def handle_in("board_state", payload, socket) do
     game = socket.assigns.game
-    push(socket, "board_state", Game.list_state(game))
+    push(socket, "board_state", Game.display_state(game))
 
     {:reply, {:ok, payload}, socket}
   end
