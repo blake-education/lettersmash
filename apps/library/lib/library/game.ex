@@ -34,6 +34,7 @@ defmodule Library.Game do
     GenServer.cast(pid, {:remove_player, player})
   end
 
+  def display_state(pid), do: GenServer.call(pid, :display_state)
   def list_state(pid), do: GenServer.call(pid, :list_state)
 
   def init(:ok) do
@@ -59,7 +60,7 @@ defmodule Library.Game do
 
     if true do
       new_board = Enum.reduce(word, board_state.board, fn(letter, acc) ->
-        replace_letter(letter, player, acc) 
+        replace_letter(letter, player, acc)
       end)
 
       new_state = %{board_state | board: new_board}
@@ -72,12 +73,17 @@ defmodule Library.Game do
 
   defp replace_letter(letter, player, board) do
     new_letter = %{letter | "owner" => String.to_integer(player)}
-    List.insert_at(board, Map.get(letter, "id"), new_letter)
     List.replace_at(board, Map.get(letter, "id"), new_letter)
   end
 
   def handle_call(:list_state, _from, board_state) do
     {:reply, board_state, board_state}
+  end
+
+  def handle_call(:display_state, _from, board_state) do
+    board = Enum.chunk board_state.board, 5
+    display_board = Map.put board_state, :board, board
+    {:reply, display_board, board_state}
   end
 
   def handle_cast({:add_player, player}, board_state) do
@@ -108,7 +114,7 @@ defmodule Library.Game do
     @generator.generate(@number_of_letters)
     |> Stream.with_index
     |> Enum.map(fn({letter, index}) ->
-      %{id: index + 1, letter: letter, owner: 0}
+      %{id: index, letter: letter, owner: 0}
     end)
   end
 end
