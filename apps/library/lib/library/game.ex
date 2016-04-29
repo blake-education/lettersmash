@@ -73,6 +73,7 @@ defmodule Library.Game do
   defp replace_letter(letter, player, board) do
     new_letter = %{letter | "owner" => String.to_integer(player)}
     List.insert_at(board, Map.get(letter, "id"), new_letter)
+    List.replace_at(board, Map.get(letter, "id"), new_letter)
   end
 
   def handle_call(:list_state, _from, board_state) do
