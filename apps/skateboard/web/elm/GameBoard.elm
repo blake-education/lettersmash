@@ -130,8 +130,11 @@ view address model =
   div
     [ class "row" ]
     [ div
+        []
+        [h2 [ class "candidate" ] [ text (List.foldl (\c a -> a ++ c.letter) "" model.candidate) ]]
+    , div
         [ class "board col-md-8" ]
-        (List.map (letterView address) model.boardState.board)
+        (List.map (boardRow address) model.boardState.board)
     , div
         [ class "col-md-4" ]
         (List.map playerView model.boardState.players)
@@ -143,7 +146,6 @@ view address model =
         , button
             [ disabled (hideSubmit model.candidate), Events.onClick address Submit ]
             [ text "Submit" ]
-        , h2 [ class "candidate" ] [ text (List.foldl (\c a -> a ++ c.letter) "" model.candidate) ]
         ]
     ]
 
