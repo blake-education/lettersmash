@@ -27,6 +27,6 @@ defmodule Skateboard.GameChannel do
 
     push(socket, "board_state", Game.list_state(game))
 
-    {:reply, {:ok, letters}, socket}
+    {:reply, :ok, socket}
   end
 end

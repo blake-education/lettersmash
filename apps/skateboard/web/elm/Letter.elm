@@ -31,7 +31,7 @@ type alias BoardRow =
 
 
 type alias Board =
-  List BoardRow
+  List Letter
 
 
 letterSurrounded : Letter -> Bool

@@ -64,14 +64,14 @@ defmodule Library.Game do
 
       new_state = %{board_state | board: new_board}
 
-      {:reply, {:ok, word}, new_state}
+      {:reply, :ok, new_state}
     else
       {:reply, {:error, "reason"}, board_state}
     end
   end
 
   defp replace_letter(letter, player, board) do
-    new_letter = %{letter | "owner" => player}
+    new_letter = %{letter | "owner" => String.to_integer(player)}
     List.insert_at(board, Map.get(letter, "id"), new_letter)
   end
 
@@ -107,8 +107,7 @@ defmodule Library.Game do
     @generator.generate(@number_of_letters)
     |> Stream.with_index
     |> Enum.map(fn({letter, index}) ->
-      %{id: index + 1, letter: letter, owner: 1}
+      %{id: index + 1, letter: letter, owner: 0}
     end)
-    |> Enum.chunk(5)
   end
 end
