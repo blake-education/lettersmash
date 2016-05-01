@@ -92,3 +92,8 @@ form.link, form.button {
   font-family: "Courier";
   font-size: 60px;
 }
+
+.surrounded {
+  filter: saturate(180%);
+  font-weight: 800;
+}
