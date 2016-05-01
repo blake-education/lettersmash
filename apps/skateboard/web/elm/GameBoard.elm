@@ -35,34 +35,11 @@ port tasks =
 --MODELS
 
 
-type alias Player =
-  { name : String
-  , score : Int
-  }
-
-
-type alias Candidate =
-  List Letter
-
-
-type alias BoardState =
-  { board : Board
-  , players : List Player
-  }
-
-
 type alias Model =
   { candidate : Candidate
   , boardState : BoardState
   }
 
-
-type Action
-  = NoOp
-  | Select Letter
-  | Submit
-  | Clear
-  | UpdateBoard BoardState
 
 
 initialModel : Model
@@ -173,15 +150,6 @@ boardRow address letters =
     []
     (List.map (letterView address) letters)
 
-
-letterView : Signal.Address Action -> Letter -> Html
-letterView address letter =
-  span
-    [ class "letter"
-    , letterStyle letter
-    , Events.onClick address (Select letter)
-    ]
-    [ text (letter.letter) ]
 
 
 
