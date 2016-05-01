@@ -1,6 +1,7 @@
 defmodule Library.Game do
   use GenServer
-  @number_of_letters 25
+  alias Library.Board
+
   @generator Library.LetterGenerator
 
   @moduledoc """
@@ -41,7 +42,7 @@ defmodule Library.Game do
     {
       :ok,
       %{
-        board: build_board,
+        board: Board.generate,
         players: [],
         next_index: 1
       }
@@ -58,22 +59,10 @@ defmodule Library.Game do
     # do:  {:reply, {:ok, word}, board_state}
     # else {:reply, {:error, "word not valid", board_state}}
 
-    if true do
-      new_board = Enum.reduce(word, board_state.board, fn(letter, acc) ->
-        replace_letter(letter, player, acc)
-      end)
+    new_board = Board.add_word(atomize_word(word), player, board_state.board)
+    new_state = %{board_state | board: new_board}
 
-      new_state = %{board_state | board: new_board}
-
-      {:reply, :ok, new_state}
-    else
-      {:reply, {:error, "reason"}, board_state}
-    end
-  end
-
-  defp replace_letter(letter, player, board) do
-    new_letter = %{letter | "owner" => String.to_integer(player)}
-    List.replace_at(board, Map.get(letter, "id"), new_letter)
+    {:reply, :ok, new_state}
   end
 
   def handle_call(:list_state, _from, board_state) do
@@ -81,7 +70,9 @@ defmodule Library.Game do
   end
 
   def handle_call(:display_state, _from, board_state) do
-    board = Enum.chunk board_state.board, 5
+    board = board_state.board
+    |> Board.surrounded
+    |> Enum.chunk(5)
     display_board = Map.put board_state, :board, board
     {:reply, display_board, board_state}
   end
@@ -110,11 +101,11 @@ defmodule Library.Game do
     Enum.reject(all_players, &(&1.id == player.id))
   end
 
-  defp build_board do
-    @generator.generate(@number_of_letters)
-    |> Stream.with_index
-    |> Enum.map(fn({letter, index}) ->
-      %{id: index, letter: letter, owner: 0}
+  defp atomize_word(word) do
+    word
+    |> Enum.map(fn(letter) ->
+      for {key, val} <- letter, into: %{}, do: {String.to_atom(key), val}
     end)
   end
+
 end
