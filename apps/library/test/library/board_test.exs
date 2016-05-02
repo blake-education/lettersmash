@@ -18,9 +18,9 @@ defmodule Library.BoardTest do
   end
 
   test "adding a word replaces the owner of each letter" do
-    word = [%{"id" => 2, "owner" => "1"}, %{"id" => 4, "owner" => "1"}]
-    updated_board = Board.add_word(word, "1", Board.generate)
-    owner_1_count = Enum.count(updated_board, &(&1["owner"] == 1))
+    word = [%{id: 2, owner: 1}, %{id: 4, owner: 1}]
+    updated_board = Board.add_word(Board.generate, word, "1")
+    owner_1_count = Enum.count(updated_board, &(&1.owner == 1))
     assert owner_1_count == 2
   end
 
