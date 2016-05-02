@@ -29,9 +29,9 @@ defmodule Library.Board do
   @doc """
   add a word to the board by replacing the owner of the submitted letters
   """
-  def add_word(word, owner, board) do
+  def add_word(board, word, owner) do
     Enum.reduce(word, board, fn(letter, acc) ->
-      replace_letter(letter, String.to_integer(owner), acc)
+      replace_letter(acc, letter, String.to_integer(owner))
     end)
   end
 
@@ -49,8 +49,14 @@ defmodule Library.Board do
     end)
   end
 
-  defp replace_letter(letter, owner, board) do
-    List.replace_at(board, Map.get(letter, :id), %{letter | owner: owner})
+  defp replace_letter(board, letter, owner) do
+    index = letter.id
+    current_letter = Enum.at(board, index)
+    if current_letter.surrounded do
+      board
+    else
+      List.replace_at(board, index, %{letter | owner: owner})
+    end
   end
 
 end
