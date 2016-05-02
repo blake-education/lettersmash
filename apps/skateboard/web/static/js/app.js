@@ -24,7 +24,8 @@ const initialState = {
     boardState:
     {
         board: [],
-        players: []
+        players: [],
+        wordlist: []
     }
 };
 

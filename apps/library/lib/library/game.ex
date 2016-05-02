@@ -1,6 +1,7 @@
 defmodule Library.Game do
   use GenServer
-  @number_of_letters 25
+  alias Library.Board
+
   @generator Library.LetterGenerator
 
   @moduledoc """
@@ -34,80 +35,104 @@ defmodule Library.Game do
     GenServer.cast(pid, {:remove_player, player})
   end
 
+  def display_state(pid), do: GenServer.call(pid, :display_state)
   def list_state(pid), do: GenServer.call(pid, :list_state)
 
   def init(:ok) do
     {
       :ok,
       %{
-        board: build_board,
+        board: Board.generate,
         players: [],
+        wordlist: [],
         next_index: 1
       }
     }
   end
 
-  def handle_call({:submit_word, word, player}, _from, board_state) do
+  def handle_call({:submit_word, word, player}, _from, game_state) do
     # this will delegate out to the dictionary to see if this is a valid word
     #
     # Would love to use this type of system.
     #
     # with {:ok} <- words_consist_of_valid_letters?(word),
     #      {:ok} <- have_not_played_word?(player, word),
-    # do:  {:reply, {:ok, word}, board_state}
-    # else {:reply, {:error, "word not valid", board_state}}
+    # do:  {:reply, {:ok, word}, game_state}
+    # else {:reply, {:error, "word not valid", game_state}}
 
-    if true do
-      new_board = Enum.reduce(word, board_state.board, fn(letter, acc) ->
-        replace_letter(letter, player, acc) 
-      end)
+    # change submitted letters to use atoms for keys rather than strings
+    word = atomize_word(word)
+    new_board = Board.add_word(game_state.board, word, player)
+    new_state =
+      %{
+        game_state |
+          board: Board.surrounded(new_board),
+          wordlist: [word_from_letters(word)] ++ game_state.wordlist
+      }
 
-      new_state = %{board_state | board: new_board}
-
-      {:reply, :ok, new_state}
-    else
-      {:reply, {:error, "reason"}, board_state}
-    end
+    {:reply, :ok, new_state}
   end
 
-  defp replace_letter(letter, player, board) do
-    new_letter = %{letter | "owner" => String.to_integer(player)}
-    List.insert_at(board, Map.get(letter, "id"), new_letter)
+  def handle_call(:list_state, _from, game_state) do
+    {:reply, game_state, game_state}
   end
 
-  def handle_call(:list_state, _from, board_state) do
-    {:reply, board_state, board_state}
+  def handle_call(:display_state, _from, game_state) do
+    board = game_state.board
+    |> Board.surrounded
+    |> Enum.chunk(5)
+    display_board = Map.put game_state, :board, board
+    {:reply, display_board, game_state}
   end
 
-  def handle_cast({:add_player, player}, board_state) do
-    new_player = Map.put_new(player, :index, board_state.next_index)
+  def handle_cast({:add_player, player}, game_state) do
+    new_player = Map.put_new(player, :index, game_state.next_index)
 
     {
       :noreply,
       %{
-        board_state | players: board_state.players ++ [new_player], next_index: (board_state.next_index + 1)
+        game_state | players: game_state.players ++ [new_player], next_index: (game_state.next_index + 1)
       }
     }
   end
 
-  def handle_cast({:remove_player, player}, board_state) do
+  def handle_cast({:remove_player, player}, game_state) do
     {
       :noreply,
       %{
-        board_state | players: remove_player_from_state(board_state.players, player)
+        game_state | players: remove_player_from_state(game_state.players, player)
       }
     }
   end
+
+  def handle_cast(:new_game, game_state) do
+    {
+      :noreply,
+      %{
+        game_state |
+          board: Board.generate,
+          word_list: []
+      }
+    }
+  end
+
 
   defp remove_player_from_state(all_players, player) do
     Enum.reject(all_players, &(&1.id == player.id))
   end
 
-  defp build_board do
-    @generator.generate(@number_of_letters)
-    |> Stream.with_index
-    |> Enum.map(fn({letter, index}) ->
-      %{id: index + 1, letter: letter, owner: 0}
+  defp atomize_word(word) do
+    word
+    |> Enum.map(fn(letter) ->
+      for {key, val} <- letter, into: %{}, do: {String.to_atom(key), val}
     end)
   end
+
+  defp word_from_letters(letters) do
+    letters
+    |> Enum.reduce("", fn(letter, acc) ->
+      acc <> letter.letter
+    end)
+  end
+
 end

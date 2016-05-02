@@ -35,34 +35,11 @@ port tasks =
 --MODELS
 
 
-type alias Player =
-  { name : String
-  , score : Int
-  }
-
-
-type alias Candidate =
-  List Letter
-
-
-type alias BoardState =
-  { board : Board
-  , players : List Player
-  }
-
-
 type alias Model =
   { candidate : Candidate
   , boardState : BoardState
   }
 
-
-type Action
-  = NoOp
-  | Select Letter
-  | Submit
-  | Clear
-  | UpdateBoard BoardState
 
 
 initialModel : Model
@@ -71,6 +48,7 @@ initialModel =
   , boardState =
       { board = []
       , players = []
+      , wordlist = []
       }
   }
 
@@ -130,11 +108,17 @@ view address model =
   div
     [ class "row" ]
     [ div
-        [ class "board col-md-8" ]
-        (List.map (letterView address) model.boardState.board)
+        []
+        [h2 [ class "candidate" ] [ text (List.foldl (\c a -> a ++ c.letter) "" model.candidate) ]]
     , div
-        [ class "col-md-4" ]
+        [ class "board col-md-8" ]
+        (List.map (boardRow address) model.boardState.board)
+    , div
+        [ class "col-md-2" ]
         (List.map playerView model.boardState.players)
+    , div
+        [ class "col-md-2" ]
+        (List.map wordlistView model.boardState.wordlist)
     , div
         [ class "col-md-12" ]
         [ button
@@ -143,7 +127,6 @@ view address model =
         , button
             [ disabled (hideSubmit model.candidate), Events.onClick address Submit ]
             [ text "Submit" ]
-        , h2 [ class "candidate" ] [ text (List.foldl (\c a -> a ++ c.letter) "" model.candidate) ]
         ]
     ]
 
@@ -162,7 +145,14 @@ playerView : Player -> Html
 playerView player =
   div
     []
-    [ h3 [] [ text (player.name ++ " " ++ toString (player.score)) ] ]
+    [ h4 [] [ text (player.name ++ " " ++ toString (player.score)) ] ]
+
+
+wordlistView : String -> Html
+wordlistView word  =
+  div
+    []
+    [ h4 [] [ text word ] ]
 
 
 boardRow : Signal.Address Action -> BoardRow -> Html
@@ -171,15 +161,6 @@ boardRow address letters =
     []
     (List.map (letterView address) letters)
 
-
-letterView : Signal.Address Action -> Letter -> Html
-letterView address letter =
-  span
-    [ class "letter"
-    , letterStyle letter
-    , Events.onClick address (Select letter)
-    ]
-    [ text (letter.letter) ]
 
 
 
