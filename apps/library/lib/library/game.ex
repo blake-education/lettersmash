@@ -105,6 +105,18 @@ defmodule Library.Game do
     }
   end
 
+  def handle_cast(:new_game, game_state) do
+    {
+      :noreply,
+      %{
+        game_state |
+          board: Board.generate,
+          word_list: []
+      }
+    }
+  end
+
+
   defp remove_player_from_state(all_players, player) do
     Enum.reject(all_players, &(&1.id == player.id))
   end
