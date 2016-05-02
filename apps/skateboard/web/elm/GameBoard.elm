@@ -48,6 +48,7 @@ initialModel =
   , boardState =
       { board = []
       , players = []
+      , wordlist = []
       }
   }
 
@@ -113,8 +114,11 @@ view address model =
         [ class "board col-md-8" ]
         (List.map (boardRow address) model.boardState.board)
     , div
-        [ class "col-md-4" ]
+        [ class "col-md-2" ]
         (List.map playerView model.boardState.players)
+    , div
+        [ class "col-md-2" ]
+        (List.map wordlistView model.boardState.wordlist)
     , div
         [ class "col-md-12" ]
         [ button
@@ -141,7 +145,14 @@ playerView : Player -> Html
 playerView player =
   div
     []
-    [ h3 [] [ text (player.name ++ " " ++ toString (player.score)) ] ]
+    [ h4 [] [ text (player.name ++ " " ++ toString (player.score)) ] ]
+
+
+wordlistView : String -> Html
+wordlistView word  =
+  div
+    []
+    [ h4 [] [ text word ] ]
 
 
 boardRow : Signal.Address Action -> BoardRow -> Html

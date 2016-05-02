@@ -49,6 +49,7 @@ type alias Candidate =
 type alias BoardState =
   { board : Board
   , players : List Player
+  , wordlist : List String
   }
 
 
