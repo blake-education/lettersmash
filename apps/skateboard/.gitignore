@@ -23,4 +23,4 @@ erl_crash.dump
 # variables.
 #/config/prod.secret.exs
 
-web/static/vendor/gameboard.js
+#web/static/vendor/gameboard.js
