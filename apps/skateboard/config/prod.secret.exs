@@ -12,5 +12,5 @@ config :skateboard, Skateboard.Repo,
   #username: System.get_env("DATABASE_USERNAME"),
   #password: System.get_env("DATABASE_PASSWORD"),
   database: System.get_env("DATABASE_URL"),
-  pool_size: 20
+  pool_size: 20,
   ssl: true
