@@ -1,0 +1,4 @@
+info "Building Phoenix static assets"
+brunch build --production
+cd apps/skateboard
+mix phoenix.digest
