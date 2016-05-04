@@ -17,11 +17,15 @@ defmodule Library.BoardTest do
     assert Enum.count(board) == 25
   end
 
+  test "players don't own any letters initially" do
+    board = Board.generate
+    assert Board.letter_count(board, 1) == 0 
+  end
+
   test "adding a word replaces the owner of each letter" do
     word = [%{id: 2, owner: 1}, %{id: 4, owner: 1}]
     updated_board = Board.add_word(Board.generate, word, "1")
-    owner_1_count = Enum.count(updated_board, &(&1.owner == 1))
-    assert owner_1_count == 2
+    assert Board.letter_count(updated_board, 1) == 2
   end
 
 end
