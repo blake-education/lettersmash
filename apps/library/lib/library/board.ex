@@ -49,6 +49,15 @@ defmodule Library.Board do
     end)
   end
 
+  @doc """
+  counts how many letters a player owns
+  """
+  def letter_count(board, player_index) do
+    Enum.count(board, fn(letter) -> 
+      letter.owner == player_index
+    end) 
+  end
+
   defp replace_letter(board, letter, owner) do
     index = letter.id
     current_letter = Enum.at(board, index)

@@ -67,6 +67,7 @@ defmodule Library.Game do
       %{
         game_state |
           board: Board.surrounded(new_board),
+          players: update_scores(new_board, game_state.players),
           wordlist: [word_from_letters(word)] ++ game_state.wordlist
       }
 
@@ -132,6 +133,13 @@ defmodule Library.Game do
     letters
     |> Enum.reduce("", fn(letter, acc) ->
       acc <> letter.letter
+    end)
+  end
+
+  defp update_scores(board, players) do
+    players
+    |> Enum.map(fn(player) -> 
+      %{player | score: Board.letter_count(board, player.index) }
     end)
   end
 
