@@ -1,11 +1,13 @@
 module GameBoard (..) where
 
+import Models exposing (..)
 import Letter exposing (..)
 import Task exposing (..)
 import Effects exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events as Events
+import String
 import List exposing (reverse, member, length, filter)
 import Array exposing (fromList, toList, get)
 import StartApp as StartApp
@@ -31,32 +33,9 @@ port tasks =
   app.tasks
 
 
-
---MODELS
-
-
-type alias Model =
-  { candidate : Candidate
-  , boardState : BoardState
-  }
-
-
-
-initialModel : Model
-initialModel =
-  { candidate = []
-  , boardState =
-      { board = []
-      , players = []
-      , wordlist = []
-      }
-  }
-
-
 init : ( Model, Effects Action )
 init =
   ( initialModel, Effects.none )
-
 
 
 --UPDATE
@@ -84,12 +63,24 @@ update action model =
       )
 
     Clear ->
-      ( { model | candidate = [] }
+      ( { model |
+        candidate = []
+        ,errorMessage = "" }
       , Effects.none
       )
 
     UpdateBoard boardState ->
       ( { model | boardState = boardState }
+      , Effects.none
+      )
+
+    SubmitSuccess status ->
+      ( { model | candidate = [] }
+      , Effects.none
+      )
+
+    SubmitFailed status ->
+      ( { model | errorMessage = "Invalid word" }
       , Effects.none
       )
 
@@ -107,7 +98,8 @@ view : Signal.Address Action -> Model -> Html
 view address model =
   div
     [ class "row" ]
-    [ div
+    [ flash address model
+    , div
         []
         [h2 [ class "candidate" ] [ text (List.foldl (\c a -> a ++ c.letter) "" model.candidate) ]]
     , div
@@ -161,7 +153,15 @@ boardRow address letters =
     []
     (List.map (letterView address) letters)
 
-
+flash : Signal.Address Action -> Model -> Html
+flash address model =
+  if String.isEmpty model.errorMessage then
+    span [] []
+  else
+    div
+      [ class "alert alert-warning"
+      ]
+      [ text model.errorMessage ]
 
 
 --SIGNALS
@@ -179,21 +179,21 @@ submitMailbox =
 
 
 
--- update the state of the board and players
+-- incoming ports
 
 
 port boardState : Signal BoardState
-
-
-
---port boardState =
---Signal BoardState
-
+port submitSuccess : Signal String
+port submitFailed : Signal String
 
 incomingActions : Signal Action
 incomingActions =
-  Signal.map UpdateBoard boardState
-
+  --Signal.map UpdateBoard boardState
+  Signal.mergeMany
+    [ Signal.map UpdateBoard boardState
+    , Signal.map SubmitSuccess submitSuccess
+    , Signal.map SubmitFailed submitFailed
+    ]
 
 
 -- EFFECTS

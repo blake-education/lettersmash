@@ -5,6 +5,7 @@ import Html.Attributes exposing (..)
 import Html.Events as Events
 import Effects exposing (..)
 import Array exposing (fromList, get)
+import Models exposing (..)
 
 colors : List String
 colors =
@@ -26,40 +27,8 @@ type Action
   | Submit
   | Clear
   | UpdateBoard BoardState
-
-
-type alias Letter =
-  { letter : String
-  , id : Int
-  , owner : Int
-  , surrounded : Bool
-  }
-
-
-type alias Player =
-  { name : String
-  , score : Int
-  }
-
-
-type alias Candidate =
-  List Letter
-
-
-type alias BoardState =
-  { board : Board
-  , players : List Player
-  , wordlist : List String
-  }
-
-
-
-type alias BoardRow =
-  List Letter
-
-
-type alias Board =
-  List BoardRow
+  | SubmitSuccess String
+  | SubmitFailed String
 
 
 letterStyle : Letter -> Attribute
