@@ -3,6 +3,6 @@
 /deps
 erl_crash.dump
 *.ez
-_DS_Store
+.DS_Store
 elm-stuff
 doc/
