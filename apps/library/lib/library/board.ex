@@ -29,7 +29,7 @@ defmodule Library.Board do
   @doc """
   add a word to the board by replacing the owner of the submitted letters
   """
-  def add_word(board, word, owner) do
+  def add_word(word, owner, board) do
     Enum.reduce(word, board, fn(letter, acc) ->
       replace_letter(acc, letter, String.to_integer(owner))
     end)

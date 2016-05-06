@@ -61,14 +61,14 @@ defmodule Library.Game do
     # else {:reply, {:error, "word not valid", game_state}}
 
     # change submitted letters to use atoms for keys rather than strings
-    word = atomize_word(word)
-    new_board = Board.add_word(game_state.board, word, player)
+
+    new_board = update_board(word, player, game_state.board)
     new_state =
       %{
         game_state |
-          board: Board.surrounded(new_board),
+          board: new_board,
           players: update_scores(new_board, game_state.players),
-          wordlist: [word_from_letters(word)] ++ game_state.wordlist
+          wordlist:  update_wordlist(word, game_state.wordlist)
       }
 
     {:reply, :ok, new_state}
@@ -138,9 +138,22 @@ defmodule Library.Game do
 
   defp update_scores(board, players) do
     players
-    |> Enum.map(fn(player) -> 
+    |> Enum.map(fn(player) ->
       %{player | score: Board.letter_count(board, player.index) }
     end)
   end
 
+  defp update_board(word, player, board) do
+    word
+    |> atomize_word
+    |> Board.add_word(player, board)
+    |> Board.surrounded
+  end
+
+  defp update_wordlist(word, wordlist) do
+    w = word
+    |> atomize_word
+    |> word_from_letters
+    List.insert_at(wordlist, 0, w)
+  end
 end
