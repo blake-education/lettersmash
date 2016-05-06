@@ -1,6 +1,8 @@
 module GameBoard (..) where
 
+import Actions exposing (..)
 import Models exposing (..)
+import Views exposing (..)
 import Letter exposing (..)
 import Task exposing (..)
 import Effects exposing (..)
@@ -8,8 +10,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events as Events
 import String
-import List exposing (reverse, member, length, filter)
-import Array exposing (fromList, toList, get)
+import List exposing (reverse, member, drop)
 import StartApp as StartApp
 
 
@@ -41,6 +42,7 @@ init =
 --UPDATE
 
 
+
 appendLetter : Letter -> Candidate -> Candidate
 appendLetter letter candidate =
   if member letter candidate then
@@ -69,6 +71,13 @@ update action model =
       , Effects.none
       )
 
+    Backspace ->
+      ( { model |
+        candidate = reverse(drop 1 (reverse model.candidate ))
+        ,errorMessage = "" }
+      , Effects.none
+      )
+
     UpdateBoard boardState ->
       ( { model | boardState = boardState }
       , Effects.none
@@ -90,78 +99,6 @@ update action model =
       )
 
 
-
---VIEWS
-
-
-view : Signal.Address Action -> Model -> Html
-view address model =
-  div
-    [ class "row" ]
-    [ flash address model
-    , div
-        []
-        [h2 [ class "candidate" ] [ text (List.foldl (\c a -> a ++ c.letter) "" model.candidate) ]]
-    , div
-        [ class "board col-md-8" ]
-        (List.map (boardRow address) model.boardState.board)
-    , div
-        [ class "col-md-2" ]
-        (List.map playerView model.boardState.players)
-    , div
-        [ class "col-md-2" ]
-        (List.map wordlistView model.boardState.wordlist)
-    , div
-        [ class "col-md-12" ]
-        [ button
-            [ disabled (hideClear model.candidate), Events.onClick address Clear ]
-            [ text "Clear" ]
-        , button
-            [ disabled (hideSubmit model.candidate), Events.onClick address Submit ]
-            [ text "Submit" ]
-        ]
-    ]
-
-
-hideSubmit : Candidate -> Bool
-hideSubmit candidate =
-  length candidate < 4
-
-
-hideClear : Candidate -> Bool
-hideClear candidate =
-  length candidate == 0
-
-
-playerView : Player -> Html
-playerView player =
-  div
-    []
-    [ h4 [] [ text (player.name ++ " " ++ toString (player.score)) ] ]
-
-
-wordlistView : String -> Html
-wordlistView word  =
-  div
-    []
-    [ h4 [] [ text word ] ]
-
-
-boardRow : Signal.Address Action -> BoardRow -> Html
-boardRow address letters =
-  div
-    []
-    (List.map (letterView address) letters)
-
-flash : Signal.Address Action -> Model -> Html
-flash address model =
-  if String.isEmpty model.errorMessage then
-    span [] []
-  else
-    div
-      [ class "alert alert-warning"
-      ]
-      [ text model.errorMessage ]
 
 
 --SIGNALS

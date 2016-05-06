@@ -23,51 +23,6 @@ colors =
   ]
 
 
-type Action
-  = NoOp
-  | Select Letter
-  | Submit
-  | Clear
-  | UpdateBoard BoardState
-  | GameOver String
-  | SubmitSuccess String
-  | SubmitFailed String
-
-
-type alias Letter =
-  { letter : String
-  , id : Int
-  , owner : Int
-  , surrounded : Bool
-  }
-
-
-type alias Player =
-  { name : String
-  , score : Int
-  }
-
-
-type alias Candidate =
-  List Letter
-
-
-type alias BoardState =
-  { board : Board
-  , players : List Player
-  , wordlist : List String
-  }
-
-
-
-type alias BoardRow =
-  List Letter
-
-
-type alias Board =
-  List BoardRow
-
-
 letterStyle : Letter -> Attribute
 letterStyle letter =
   style [ ( "background-color", letterColour letter ) ]
@@ -86,13 +41,4 @@ letterClass letter =
   else
     "letter"
 
-
-letterView : Signal.Address Action -> Letter -> Html
-letterView address letter =
-  span
-    [ class(letterClass letter)
-    , letterStyle letter
-    , Events.onClick address (Select letter)
-    ]
-    [ text (letter.letter) ]
 
