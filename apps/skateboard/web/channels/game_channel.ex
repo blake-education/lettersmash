@@ -26,12 +26,12 @@ defmodule Skateboard.GameChannel do
     {validity, _} = Dictionary.check_word word(letters)
     case validity do
       :invalid ->
-        push(socket, "submission_failed", %{})
+        push(socket, "submission_failed", %{message: "Invalid word"})
       :valid ->
         game = socket.assigns.game
         Game.submit_word(game, letters, socket.assigns.user_id)
-        push(socket, "submission_successful", %{})
         broadcast!(socket, "board_state", Game.display_state(game))
+        push(socket, "submission_successful", %{message: "success!"})
     end
 
     {:reply, :ok, socket}

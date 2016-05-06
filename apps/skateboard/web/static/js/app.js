@@ -27,7 +27,9 @@ const initialState = {
         players: [],
         wordlist: []
     },
-    gameOver: ""
+    gameOver: "",
+    submitSuccess: "",
+    submitFailed: ""
 };
 
 const elmDiv = document.getElementById('elm-container');
@@ -55,13 +57,18 @@ channel.on("game_over", data => {
   elmApp.ports.gameOver.send(data.message);
 })
 
+channel.on("submission_successful", data => {
+  console.log("submission_successful: ", data);
+  elmApp.ports.submitSuccess.send(data.message);
+})
+
+channel.on("submission_failed", data => {
+  console.log("submission_failed: ", data);
+  elmApp.ports.submitFailed.send(data.message);
+})
+
 /* this will send the letters back to the server via a channel */
 elmApp.ports.submit.subscribe( function(letters) {
-  let str = letters.reduce( function(acc, letter, index, letters) {
-    return acc + letter.letter;
-  }, "");
-  console.log(str);
-
   channel.push("submit_word", letters);
 });
 

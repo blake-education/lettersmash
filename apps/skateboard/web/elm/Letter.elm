@@ -5,6 +5,7 @@ import Html.Attributes exposing (..)
 import Html.Events as Events
 import Effects exposing (..)
 import Array exposing (fromList, get)
+import Models exposing (..)
 
 colors : List String
 colors =
@@ -29,6 +30,8 @@ type Action
   | Clear
   | UpdateBoard BoardState
   | GameOver String
+  | SubmitSuccess String
+  | SubmitFailed String
 
 
 type alias Letter =

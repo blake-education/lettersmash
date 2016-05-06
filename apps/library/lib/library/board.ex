@@ -41,11 +41,7 @@ defmodule Library.Board do
   def surrounded(board) do
     board
     |> Enum.map(fn(letter) ->
-      if Letter.surrounded(letter, board, 5, 5) do
-        %{letter | surrounded: true}
-      else
-        %{letter | surrounded: false}
-      end
+      %{letter | surrounded: Letter.surrounded(letter, board, @width, @height)}
     end)
   end
 
@@ -53,9 +49,9 @@ defmodule Library.Board do
   counts how many letters a player owns
   """
   def letter_count(board, player_index) do
-    Enum.count(board, fn(letter) -> 
+    Enum.count(board, fn(letter) ->
       letter.owner == player_index
-    end) 
+    end)
   end
 
   defp replace_letter(board, letter, owner) do
