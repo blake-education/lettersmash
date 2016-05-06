@@ -45,6 +45,7 @@ defmodule Library.Game do
         board: Board.generate,
         players: [],
         wordlist: [],
+        game_over: false,
         next_index: 1
       }
     }
@@ -60,18 +61,21 @@ defmodule Library.Game do
     # do:  {:reply, {:ok, word}, game_state}
     # else {:reply, {:error, "word not valid", game_state}}
 
-    # change submitted letters to use atoms for keys rather than strings
+    if game_state.game_over do
+      {:reply, :ok, game_state}
+    else
+      new_board = update_board(word, player, game_state.board)
+      new_state =
+        %{
+          game_state |
+            board: new_board,
+            players: update_scores(new_board, game_state.players),
+            wordlist:  update_wordlist(word, game_state.wordlist),
+            game_over: Board.completed?(new_board)
+        }
 
-    new_board = update_board(word, player, game_state.board)
-    new_state =
-      %{
-        game_state |
-          board: new_board,
-          players: update_scores(new_board, game_state.players),
-          wordlist:  update_wordlist(word, game_state.wordlist)
-      }
-
-    {:reply, :ok, new_state}
+      {:reply, :ok, new_state}
+    end
   end
 
   def handle_call(:list_state, _from, game_state) do

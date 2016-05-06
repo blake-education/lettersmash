@@ -22,8 +22,8 @@ defmodule Library.Board do
   @doc """
   if all letters have an owner the board is completed and the game is over
   """
-  def completed?(letters) do
-    Enum.all? letters, fn(letter) -> letter.owner != 0 end
+  def completed?(board) do
+    Enum.all? board, fn(letter) -> letter.owner != 0 end
   end
 
   @doc """

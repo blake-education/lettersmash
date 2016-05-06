@@ -25,7 +25,8 @@ const initialState = {
     {
         board: [],
         players: [],
-        wordlist: []
+        wordlist: [],
+        game_over: false
     },
     gameOver: "",
     submitSuccess: "",

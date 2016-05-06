@@ -27,8 +27,8 @@ view address model =
       [ class "row" ]
       [ div
         [ class "col-md-12"]
-        [ Html.form
-          []
+        [ div
+          [ class "form"]
           [ div
             [ class "btn-group"]
             [ button
@@ -40,6 +40,9 @@ view address model =
             , button
                 [ class "btn btn-primary", disabled (hideSubmit model.candidate), Events.onClick address Submit ]
                 [ text "Submit" ]
+            , button
+                [ class "btn btn", disabled (not model.boardState.game_over) ]
+                [ text "New Game" ]
             ]
           ]
         ]
@@ -65,6 +68,10 @@ view address model =
 hideSubmit : Candidate -> Bool
 hideSubmit candidate =
   length candidate < 4
+
+hideGameover : BoardState -> Bool
+hideGameover boardState =
+  not boardState.game_over
 
 
 hideClear : Candidate -> Bool

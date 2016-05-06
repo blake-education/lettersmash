@@ -27,6 +27,7 @@ type alias BoardState =
   { board : Board
   , players : List Player
   , wordlist : List String
+  , game_over : Bool
   }
 
 
@@ -52,6 +53,7 @@ initialModel =
       { board = []
       , players = []
       , wordlist = []
+      , game_over = False
       }
   , errorMessage = "Welcome to LettersMash"
   }
