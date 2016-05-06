@@ -9,14 +9,16 @@ import Array exposing (fromList, get)
 colors : List String
 colors =
   [ "LightGrey"
-  , "Coral"
-  , "CornflowerBlue"
-  , "SeaGreen"
-  , "MediumRedViolet"
-  , "LimeGreen"
-  , "Gold"
-  , "Peru"
-  , "DarkOrange"
+  , "#ef476f"
+  , "#ffd166"
+  , "#06d6a0"
+  , "#118ab2"
+  , "#073b4c"
+  , "#247ba0"
+  , "#70c1b3"
+  , "#b2dbbf"
+  , "#f3ffbd"
+  , "#ff1654"
   ]
 
 
@@ -26,6 +28,7 @@ type Action
   | Submit
   | Clear
   | UpdateBoard BoardState
+  | GameOver String
 
 
 type alias Letter =

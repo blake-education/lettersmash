@@ -183,6 +183,7 @@ submitMailbox =
 
 
 port boardState : Signal BoardState
+port gameOver : Signal String
 
 
 

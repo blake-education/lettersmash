@@ -26,7 +26,8 @@ const initialState = {
         board: [],
         players: [],
         wordlist: []
-    }
+    },
+    gameOver: ""
 };
 
 const elmDiv = document.getElementById('elm-container');
@@ -47,6 +48,11 @@ channel.join()
 channel.on("board_state", board_state => {
   console.log("board state: ", board_state);
   elmApp.ports.boardState.send(board_state);
+})
+
+channel.on("game_over", data => {
+  console.log("game_over: ", data);
+  elmApp.ports.gameOver.send(data.message);
 })
 
 /* this will send the letters back to the server via a channel */
