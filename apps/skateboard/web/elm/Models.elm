@@ -15,6 +15,7 @@ type alias Letter =
 
 type alias Player =
   { name : String
+  , index : Int
   , score : Int
   }
 

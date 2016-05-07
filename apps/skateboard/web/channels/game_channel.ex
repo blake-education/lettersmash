@@ -55,17 +55,17 @@ defmodule Skateboard.GameChannel do
     Enum.reduce(letters, "", &(&2 <> &1["letter"]))
   end
 
-  def terminate(_message, socket) do
-    id = socket.assigns.user_id
-    user = Skateboard.Repo.get(User, id)
-    user_map = %{id: user.id, name: user.name, score: 0}
+  #def terminate(_message, socket) do
+    #id = socket.assigns.user_id
+    #user = Skateboard.Repo.get(User, id)
+    #user_map = %{id: user.id, name: user.name, score: 0}
 
-    game = socket.assigns.game
-    Game.remove_player(game, user_map)
-    broadcast!(socket, "board_state", Game.display_state(game))
+    #game = socket.assigns.game
+    #Game.remove_player(game, user_map)
+    #broadcast!(socket, "board_state", Game.display_state(game))
 
-    {:reply, :ok, socket}
-  end
+    #{:reply, :ok, socket}
+  #end
 
   def handle_info(_, socket) do
     {:noreply, socket}
