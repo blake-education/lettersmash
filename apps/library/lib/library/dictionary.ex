@@ -12,7 +12,7 @@ defmodule Library.Dictionary do
   ### Server callbacks
 
   def init([]) do
-    with {:ok, words} <- File.read("/usr/share/dict/words"),
+    with {:ok, words} <- File.read("./apps/library/lib/library/sowpods.txt"),
       do: {:ok, format_words(words)}
   end
 

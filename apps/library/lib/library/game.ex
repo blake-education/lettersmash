@@ -27,6 +27,10 @@ defmodule Library.Game do
     GenServer.call(pid, {:submit_word, word, player})
   end
 
+  def new_game(pid) do
+    GenServer.cast(pid, :new_game)
+  end
+
   def add_player(pid, player) do
     GenServer.cast(pid, {:add_player, player})
   end
@@ -45,12 +49,13 @@ defmodule Library.Game do
         board: Board.generate,
         players: [],
         wordlist: [],
+        game_over: false,
         next_index: 1
       }
     }
   end
 
-  def handle_call({:submit_word, word, player}, _from, game_state) do
+  def handle_call({:submit_word, word, player_id}, _from, game_state) do
     # this will delegate out to the dictionary to see if this is a valid word
     #
     # Would love to use this type of system.
@@ -60,18 +65,22 @@ defmodule Library.Game do
     # do:  {:reply, {:ok, word}, game_state}
     # else {:reply, {:error, "word not valid", game_state}}
 
-    # change submitted letters to use atoms for keys rather than strings
-    word = atomize_word(word)
-    new_board = Board.add_word(game_state.board, word, player)
-    new_state =
-      %{
-        game_state |
-          board: Board.surrounded(new_board),
-          players: update_scores(new_board, game_state.players),
-          wordlist: [word_from_letters(word)] ++ game_state.wordlist
-      }
+    if game_state.game_over do
+      {:reply, :ok, game_state}
+    else
+      player = find_player(String.to_integer(player_id), game_state.players)
+      new_board = update_board(word, player.index, game_state.board)
+      new_state =
+        %{
+          game_state |
+            board: new_board,
+            players: update_scores(new_board, game_state.players),
+            wordlist:  update_wordlist(word, game_state.wordlist),
+            game_over: Board.completed?(new_board)
+        }
 
-    {:reply, :ok, new_state}
+      {:reply, :ok, new_state}
+    end
   end
 
   def handle_call(:list_state, _from, game_state) do
@@ -87,14 +96,17 @@ defmodule Library.Game do
   end
 
   def handle_cast({:add_player, player}, game_state) do
-    new_player = Map.put_new(player, :index, game_state.next_index)
-
-    {
-      :noreply,
-      %{
-        game_state | players: game_state.players ++ [new_player], next_index: (game_state.next_index + 1)
+    if find_player(player.id, game_state.players) do
+      { :noreply, game_state }
+    else
+      new_player = Map.put_new(player, :index, game_state.next_index)
+      {
+        :noreply,
+        %{
+          game_state | players: game_state.players ++ [new_player], next_index: (game_state.next_index + 1)
+        }
       }
-    }
+    end
   end
 
   def handle_cast({:remove_player, player}, game_state) do
@@ -112,7 +124,8 @@ defmodule Library.Game do
       %{
         game_state |
           board: Board.generate,
-          word_list: []
+          wordlist: [],
+          game_over: false
       }
     }
   end
@@ -138,9 +151,29 @@ defmodule Library.Game do
 
   defp update_scores(board, players) do
     players
-    |> Enum.map(fn(player) -> 
+    |> Enum.map(fn(player) ->
       %{player | score: Board.letter_count(board, player.index) }
     end)
+  end
+
+  defp update_board(word, player_index, board) do
+    word
+    |> atomize_word
+    |> Board.add_word(player_index, board)
+    |> Board.surrounded
+  end
+
+  defp update_wordlist(word, wordlist) do
+    w = word
+    |> atomize_word
+    |> word_from_letters
+    List.insert_at(wordlist, 0, w)
+  end
+
+  defp find_player(id, players) do
+    players
+    |> Enum.find(fn(player) ->
+      player.id == id end)
   end
 
 end

@@ -25,8 +25,12 @@ const initialState = {
     {
         board: [],
         players: [],
-        wordlist: []
-    }
+        wordlist: [],
+        game_over: false
+    },
+    gameOver: "",
+    submitSuccess: "",
+    submitFailed: ""
 };
 
 const elmDiv = document.getElementById('elm-container');
@@ -49,13 +53,26 @@ channel.on("board_state", board_state => {
   elmApp.ports.boardState.send(board_state);
 })
 
-/* this will send the letters back to the server via a channel */
-elmApp.ports.submit.subscribe( function(letters) {
-  let str = letters.reduce( function(acc, letter, index, letters) {
-    return acc + letter.letter;
-  }, "");
-  console.log(str);
+channel.on("game_over", data => {
+  console.log("game_over: ", data);
+  elmApp.ports.gameOver.send(data.message);
+})
 
+channel.on("submission_successful", data => {
+  console.log("submission_successful: ", data);
+  elmApp.ports.submitSuccess.send(data.message);
+})
+
+channel.on("submission_failed", data => {
+  console.log("submission_failed: ", data);
+  elmApp.ports.submitFailed.send(data.message);
+})
+
+elmApp.ports.submit.subscribe( function(letters) {
   channel.push("submit_word", letters);
+});
+
+elmApp.ports.requestNewGame.subscribe( function(message) {
+  channel.push("new_game", {message: message});
 });
 

@@ -22,16 +22,16 @@ defmodule Library.Board do
   @doc """
   if all letters have an owner the board is completed and the game is over
   """
-  def completed?(letters) do
-    Enum.all? letters, fn(letter) -> letter.owner != 0 end
+  def completed?(board) do
+    Enum.all? board, fn(letter) -> letter.owner != 0 end
   end
 
   @doc """
   add a word to the board by replacing the owner of the submitted letters
   """
-  def add_word(board, word, owner) do
+  def add_word(word, index, board) do
     Enum.reduce(word, board, fn(letter, acc) ->
-      replace_letter(acc, letter, String.to_integer(owner))
+      replace_letter(acc, letter, index)
     end)
   end
 
@@ -41,11 +41,7 @@ defmodule Library.Board do
   def surrounded(board) do
     board
     |> Enum.map(fn(letter) ->
-      if Letter.surrounded(letter, board, 5, 5) do
-        %{letter | surrounded: true}
-      else
-        %{letter | surrounded: false}
-      end
+      %{letter | surrounded: Letter.surrounded(letter, board, @width, @height)}
     end)
   end
 
@@ -53,9 +49,9 @@ defmodule Library.Board do
   counts how many letters a player owns
   """
   def letter_count(board, player_index) do
-    Enum.count(board, fn(letter) -> 
+    Enum.count(board, fn(letter) ->
       letter.owner == player_index
-    end) 
+    end)
   end
 
   defp replace_letter(board, letter, owner) do
