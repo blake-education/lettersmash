@@ -55,7 +55,7 @@ defmodule Library.Game do
     }
   end
 
-  def handle_call({:submit_word, word, player}, _from, game_state) do
+  def handle_call({:submit_word, word, player_id}, _from, game_state) do
     # this will delegate out to the dictionary to see if this is a valid word
     #
     # Would love to use this type of system.
@@ -68,7 +68,8 @@ defmodule Library.Game do
     if game_state.game_over do
       {:reply, :ok, game_state}
     else
-      new_board = update_board(word, player, game_state.board)
+      player = find_player(String.to_integer(player_id), game_state.players)
+      new_board = update_board(word, player.index, game_state.board)
       new_state =
         %{
           game_state |
@@ -95,14 +96,19 @@ defmodule Library.Game do
   end
 
   def handle_cast({:add_player, player}, game_state) do
-    new_player = Map.put_new(player, :index, game_state.next_index)
-
-    {
-      :noreply,
-      %{
-        game_state | players: game_state.players ++ [new_player], next_index: (game_state.next_index + 1)
+    if find_player(player.id, game_state.players) do
+      IO.puts "found player"
+      { :noreply, game_state }
+    else
+      IO.puts "player not found"
+      new_player = Map.put_new(player, :index, game_state.next_index)
+      {
+        :noreply,
+        %{
+          game_state | players: game_state.players ++ [new_player], next_index: (game_state.next_index + 1)
+        }
       }
-    }
+    end
   end
 
   def handle_cast({:remove_player, player}, game_state) do
@@ -152,10 +158,10 @@ defmodule Library.Game do
     end)
   end
 
-  defp update_board(word, player, board) do
+  defp update_board(word, player_index, board) do
     word
     |> atomize_word
-    |> Board.add_word(player, board)
+    |> Board.add_word(player_index, board)
     |> Board.surrounded
   end
 
@@ -165,4 +171,12 @@ defmodule Library.Game do
     |> word_from_letters
     List.insert_at(wordlist, 0, w)
   end
+
+  defp find_player(id, players) do
+    players
+    |> Enum.find(fn(player) ->
+      IO.puts "player #{player.id} id #{id}"
+      player.id == id end)
+  end
+
 end
