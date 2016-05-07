@@ -10696,7 +10696,7 @@ Elm.Models.make = function (_elm) {
                       ,errorMessage: "Welcome to LettersMash"};
    var Model = F3(function (a,b,c) {    return {candidate: a,boardState: b,errorMessage: c};});
    var BoardState = F4(function (a,b,c,d) {    return {board: a,players: b,wordlist: c,game_over: d};});
-   var Player = F2(function (a,b) {    return {name: a,score: b};});
+   var Player = F3(function (a,b,c) {    return {name: a,index: b,score: c};});
    var Letter = F4(function (a,b,c,d) {    return {letter: a,id: b,owner: c,surrounded: d};});
    return _elm.Models.values = {_op: _op,Letter: Letter,Player: Player,BoardState: BoardState,Model: Model,initialModel: initialModel};
 };
@@ -10789,15 +10789,10 @@ Elm.Views.make = function (_elm) {
       _U.list([$Html.text(model.errorMessage)]));
    });
    var wordlistView = function (word) {    return A2($Html.div,_U.list([]),_U.list([A2($Html.h4,_U.list([]),_U.list([$Html.text(word)]))]));};
-   var playerView = function (player) {
-      return A2($Html.div,
-      _U.list([]),
-      _U.list([A2($Html.h4,_U.list([]),_U.list([$Html.text(A2($Basics._op["++"],player.name,A2($Basics._op["++"]," ",$Basics.toString(player.score))))]))]));
-   };
    var hideClear = function (candidate) {    return _U.eq($List.length(candidate),0);};
    var hideGameover = function (boardState) {    return $Basics.not(boardState.game_over);};
    var hideSubmit = function (candidate) {    return _U.cmp($List.length(candidate),4) < 0;};
-   var colors = _U.list(["LightGrey","#ef476f","#ffd166","#06d6a0","#118ab2","#073b4c","#247ba0","#70c1b3","#b2dbbf","#f3ffbd","#ff1654"]);
+   var colors = _U.list(["LightGrey","#ef476f","#ffd166","#06d6a0","#118ab2","#773b9c","#247ba0","#70c1b3","#b2dbbf","#f3ffbd","#ff1654"]);
    var letterColour = function (letter) {    return A2($Maybe.withDefault,"grey",A2($Array.get,letter.owner,$Array.fromList(colors)));};
    var letterStyle = function (letter) {    return $Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "background-color",_1: letterColour(letter)}]));};
    var letterView = F2(function (address,letter) {
@@ -10806,6 +10801,13 @@ Elm.Views.make = function (_elm) {
       _U.list([$Html.text(letter.letter)]));
    });
    var boardRow = F2(function (address,letters) {    return A2($Html.div,_U.list([]),A2($List.map,letterView(address),letters));});
+   var playerColour = function (player) {    return A2($Maybe.withDefault,"grey",A2($Array.get,player.index,$Array.fromList(colors)));};
+   var playerStyle = function (player) {    return $Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "background-color",_1: playerColour(player)}]));};
+   var playerView = function (player) {
+      return A2($Html.div,
+      _U.list([playerStyle(player)]),
+      _U.list([A2($Html.h4,_U.list([]),_U.list([$Html.text(A2($Basics._op["++"],player.name,A2($Basics._op["++"]," ",$Basics.toString(player.score))))]))]));
+   };
    var view = F2(function (address,model) {
       return A2($Html.div,
       _U.list([$Html$Attributes.$class("outer")]),
@@ -10865,7 +10867,9 @@ Elm.Views.make = function (_elm) {
                               ,letterView: letterView
                               ,flash: flash
                               ,letterStyle: letterStyle
+                              ,playerStyle: playerStyle
                               ,letterColour: letterColour
+                              ,playerColour: playerColour
                               ,letterClass: letterClass};
 };
 Elm.Update = Elm.Update || {};
@@ -10961,11 +10965,13 @@ Elm.GameBoard.make = function (_elm) {
                                                                                                                  })) : _U.badPort("an array",v);
                                                                                                               })) : _U.badPort("an array",v.board)
                                                                                                               ,players: typeof v.players === "object" && v.players instanceof Array ? Elm.Native.List.make(_elm).fromArray(v.players.map(function (v) {
-                                                                                                                 return typeof v === "object" && "name" in v && "score" in v ? {_: {}
-                                                                                                                                                                               ,name: typeof v.name === "string" || typeof v.name === "object" && v.name instanceof String ? v.name : _U.badPort("a string",
-                                                                                                                                                                               v.name)
-                                                                                                                                                                               ,score: typeof v.score === "number" && isFinite(v.score) && Math.floor(v.score) === v.score ? v.score : _U.badPort("an integer",
-                                                                                                                                                                               v.score)} : _U.badPort("an object with fields `name`, `score`",
+                                                                                                                 return typeof v === "object" && "name" in v && "index" in v && "score" in v ? {_: {}
+                                                                                                                                                                                               ,name: typeof v.name === "string" || typeof v.name === "object" && v.name instanceof String ? v.name : _U.badPort("a string",
+                                                                                                                                                                                               v.name)
+                                                                                                                                                                                               ,index: typeof v.index === "number" && isFinite(v.index) && Math.floor(v.index) === v.index ? v.index : _U.badPort("an integer",
+                                                                                                                                                                                               v.index)
+                                                                                                                                                                                               ,score: typeof v.score === "number" && isFinite(v.score) && Math.floor(v.score) === v.score ? v.score : _U.badPort("an integer",
+                                                                                                                                                                                               v.score)} : _U.badPort("an object with fields `name`, `index`, `score`",
                                                                                                                  v);
                                                                                                               })) : _U.badPort("an array",v.players)
                                                                                                               ,wordlist: typeof v.wordlist === "object" && v.wordlist instanceof Array ? Elm.Native.List.make(_elm).fromArray(v.wordlist.map(function (v) {
