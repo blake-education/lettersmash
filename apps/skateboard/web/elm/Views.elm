@@ -20,7 +20,7 @@ colors =
   , "#ffd166"
   , "#06d6a0"
   , "#118ab2"
-  , "#073b4c"
+  , "#773b9c"
   , "#247ba0"
   , "#70c1b3"
   , "#b2dbbf"
@@ -99,7 +99,7 @@ hideClear candidate =
 playerView : Player -> Html
 playerView player =
   div
-    []
+    [ playerStyle player ]
     [ h4 [] [ text (player.name ++ " " ++ toString (player.score)) ] ]
 
 
@@ -143,10 +143,19 @@ letterStyle letter =
   style [ ( "background-color", letterColour letter ) ]
 
 
+playerStyle : Player -> Attribute
+playerStyle player =
+  style [ ( "background-color", playerColour player ) ]
+
 
 letterColour : Letter -> String
 letterColour letter =
   Maybe.withDefault "grey" (get letter.owner (fromList colors))
+
+
+playerColour : Player -> String
+playerColour player =
+  Maybe.withDefault "grey" (get player.index (fromList colors))
 
 
 letterClass : Letter -> String
