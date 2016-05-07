@@ -2,7 +2,7 @@ module Update (..) where
 
 import Actions exposing (..)
 import Models exposing (..)
-import LocalEffects exposing (sendSubmit)
+import LocalEffects exposing (sendSubmit, sendNewGame)
 import String
 import List exposing (reverse, member, drop)
 import Effects exposing (..)
@@ -22,6 +22,12 @@ update action model =
       ( model
       , sendSubmit model.candidate
       )
+
+    RequestNewGame ->
+      ( model
+      , sendNewGame ""
+      )
+
 
     Select letter ->
       ( { model | candidate = appendLetter letter model.candidate }

@@ -43,6 +43,14 @@ defmodule Skateboard.GameChannel do
     {:reply, :ok, socket}
   end
 
+  def handle_in("new_game", payload, socket) do
+    game = socket.assigns.game
+    Game.new_game(game)
+    push(socket, "board_state", Game.display_state(game))
+
+    {:reply, {:ok, payload}, socket}
+  end
+
   defp word(letters) do
     Enum.reduce(letters, "", &(&2 <> &1["letter"]))
   end

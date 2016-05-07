@@ -12,4 +12,5 @@ type Action
   | GameOver String
   | SubmitSuccess String
   | SubmitFailed String
+  | RequestNewGame
 

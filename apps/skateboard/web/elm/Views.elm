@@ -58,7 +58,7 @@ view address model =
                 [ class "btn btn-primary", disabled (hideSubmit model.candidate), Events.onClick address Submit ]
                 [ text "Submit" ]
             , button
-                [ class "btn btn", disabled (not model.boardState.game_over) ]
+                [ class "btn btn", disabled (not model.boardState.game_over), Events.onClick address RequestNewGame ]
                 [ text "New Game" ]
             ]
           ]

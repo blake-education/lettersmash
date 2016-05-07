@@ -68,8 +68,11 @@ channel.on("submission_failed", data => {
   elmApp.ports.submitFailed.send(data.message);
 })
 
-/* this will send the letters back to the server via a channel */
 elmApp.ports.submit.subscribe( function(letters) {
   channel.push("submit_word", letters);
+});
+
+elmApp.ports.requestNewGame.subscribe( function(message) {
+  channel.push("new_game", {message: message});
 });
 

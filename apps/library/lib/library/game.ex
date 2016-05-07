@@ -27,6 +27,10 @@ defmodule Library.Game do
     GenServer.call(pid, {:submit_word, word, player})
   end
 
+  def new_game(pid) do
+    GenServer.cast(pid, :new_game)
+  end
+
   def add_player(pid, player) do
     GenServer.cast(pid, {:add_player, player})
   end
@@ -116,7 +120,8 @@ defmodule Library.Game do
       %{
         game_state |
           board: Board.generate,
-          word_list: []
+          wordlist: [],
+          game_over: false
       }
     }
   end

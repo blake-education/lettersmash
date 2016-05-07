@@ -17,4 +17,16 @@ sendSubmit letters =
     |> Effects.map (always NoOp)
 
 
+newGameMailbox : Signal.Mailbox String
+newGameMailbox =
+  Signal.mailbox ""
+
+
+sendNewGame : String -> Effects Action
+sendNewGame message =
+  Signal.send newGameMailbox.address message
+    |> Effects.task
+    |> Effects.map (always NoOp)
+
+
 

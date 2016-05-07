@@ -46,6 +46,10 @@ port submit : Signal Candidate
 port submit =
   submitMailbox.signal
 
+port requestNewGame : Signal String
+port requestNewGame =
+  newGameMailbox.signal
+
 
 -- incoming ports
 
