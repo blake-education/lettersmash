@@ -97,10 +97,8 @@ defmodule Library.Game do
 
   def handle_cast({:add_player, player}, game_state) do
     if find_player(player.id, game_state.players) do
-      IO.puts "found player"
       { :noreply, game_state }
     else
-      IO.puts "player not found"
       new_player = Map.put_new(player, :index, game_state.next_index)
       {
         :noreply,
@@ -175,7 +173,6 @@ defmodule Library.Game do
   defp find_player(id, players) do
     players
     |> Enum.find(fn(player) ->
-      IO.puts "player #{player.id} id #{id}"
       player.id == id end)
   end
 
