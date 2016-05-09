@@ -168,12 +168,17 @@ defmodule Library.Game do
     |> atomize_word
     |> word_from_letters
     List.insert_at(wordlist, 0, w)
+  defp update_wordlist(word, wordlist, player_index) do
+    List.insert_at(wordlist, 0, %{word: word_string(word), played_by: player_index})
   end
 
   defp find_player(id, players) do
     players
     |> Enum.find(fn(player) ->
       player.id == id end)
+  defp word_used_previously(wordlist, letters) do
+    Enum.any?(wordlist, &(&1.word == word_string letters))
+  end
   end
 
 end

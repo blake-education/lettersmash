@@ -103,11 +103,11 @@ playerView player =
     [ h4 [] [ text (player.name ++ " " ++ toString (player.score)) ] ]
 
 
-wordlistView : String -> Html
+wordlistView : Word -> Html
 wordlistView word  =
   div
-    []
-    [ h4 [] [ text word ] ]
+    [ wordStyle word ]
+    [ h4 [] [ text word.word ] ]
 
 
 boardRow : Signal.Address Action -> BoardRow -> Html
@@ -148,6 +148,11 @@ playerStyle player =
   style [ ( "background-color", playerColour player ) ]
 
 
+wordStyle : Word -> Attribute
+wordStyle word =
+  style [ ( "background-color", wordColour word ) ]
+
+
 letterColour : Letter -> String
 letterColour letter =
   Maybe.withDefault "grey" (get letter.owner (fromList colors))
@@ -156,6 +161,10 @@ letterColour letter =
 playerColour : Player -> String
 playerColour player =
   Maybe.withDefault "grey" (get player.index (fromList colors))
+
+wordColour : Word -> String
+wordColour word =
+  Maybe.withDefault "grey" (get word.played_by (fromList colors))
 
 
 letterClass : Letter -> String
