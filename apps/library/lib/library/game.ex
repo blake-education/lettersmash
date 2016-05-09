@@ -129,6 +129,7 @@ defmodule Library.Game do
       %{
         game_state |
           board: Board.generate,
+          players: clear_scores(game_state.players),
           wordlist: [],
           game_over: false
       }
@@ -144,6 +145,7 @@ defmodule Library.Game do
     |> Enum.map(fn(player) ->
       %{player | score: Board.letter_count(board, player.index) }
     end)
+    |> Enum.sort(&(&1.score > &2.score))
   end
 
   defp update_board(word, player_index, board) do
@@ -178,6 +180,10 @@ defmodule Library.Game do
       _ -> false
     end
   end
+
+  defp clear_scores(players) do
+    players
+    |> Enum.map(&Map.put(&1, :score, 0))
   end
 
 end
