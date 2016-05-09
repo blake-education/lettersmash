@@ -2,7 +2,6 @@ defmodule Skateboard.GameChannel do
   use Phoenix.Channel
   alias Skateboard.User
   alias Library.Game
-  alias Library.Dictionary
 
   def join("game:new", _message, socket) do
     id = socket.assigns.user_id
@@ -29,17 +28,15 @@ defmodule Skateboard.GameChannel do
   end
 
   def handle_in("submit_word", letters, socket) do
-    {validity, _} = Dictionary.check_word word(letters)
-    case validity do
-      :invalid ->
-        push(socket, "submission_failed", %{message: "Invalid word"})
-      :valid ->
-        game = socket.assigns.game
-        Game.submit_word(game, letters, socket.assigns.user_id)
+    game = socket.assigns.game
+    case Game.submit_word(game, atomize(letters), socket.assigns.user_id) do
+      {:error, reason} ->
+        IO.puts reason
+        push(socket, "submission_failed", %{message: reason})
+      _ ->
         broadcast!(socket, "board_state", Game.display_state(game))
         push(socket, "submission_successful", %{message: "success!"})
     end
-
     {:reply, :ok, socket}
   end
 
@@ -69,6 +66,13 @@ defmodule Skateboard.GameChannel do
 
   def handle_info(_, socket) do
     {:noreply, socket}
+  end
+
+  defp atomize(word) do
+    word
+    |> Enum.map(fn(letter) ->
+      for {key, val} <- letter, into: %{}, do: {String.to_atom(key), val}
+    end)
   end
 
 end
