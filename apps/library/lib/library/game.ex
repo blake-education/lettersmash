@@ -1,6 +1,7 @@
 defmodule Library.Game do
   use GenServer
   alias Library.Board
+  alias Library.Dictionary
 
   @generator Library.LetterGenerator
 
@@ -65,21 +66,25 @@ defmodule Library.Game do
     # do:  {:reply, {:ok, word}, game_state}
     # else {:reply, {:error, "word not valid", game_state}}
 
-    if game_state.game_over do
-      {:reply, :ok, game_state}
-    else
-      player = find_player(String.to_integer(player_id), game_state.players)
-      new_board = update_board(word, player.index, game_state.board)
-      new_state =
-        %{
-          game_state |
-            board: new_board,
-            players: update_scores(new_board, game_state.players),
-            wordlist:  update_wordlist(word, game_state.wordlist),
-            game_over: Board.completed?(new_board)
-        }
-
-      {:reply, :ok, new_state}
+    cond do
+      word_used_previously(game_state.wordlist, word) ->
+        {:reply, {:error, "Word already played"}, game_state}
+      invalid_word(word) ->
+        {:reply, {:error, "Invalid word"}, game_state}
+      game_state.game_over ->
+        {:reply, {:error, "game over"}, game_state}
+      true ->
+        player = find_player(String.to_integer(player_id), game_state.players)
+        new_board = update_board(word, player.index, game_state.board)
+        new_state =
+          %{
+            game_state |
+              board: new_board,
+              players: update_scores(new_board, game_state.players),
+              wordlist:  update_wordlist(word, game_state.wordlist, player.index),
+              game_over: Board.completed?(new_board)
+          }
+        {:reply, :ok, new_state}
     end
   end
 
@@ -124,29 +129,15 @@ defmodule Library.Game do
       %{
         game_state |
           board: Board.generate,
+          players: clear_scores(game_state.players),
           wordlist: [],
           game_over: false
       }
     }
   end
 
-
   defp remove_player_from_state(all_players, player) do
     Enum.reject(all_players, &(&1.id == player.id))
-  end
-
-  defp atomize_word(word) do
-    word
-    |> Enum.map(fn(letter) ->
-      for {key, val} <- letter, into: %{}, do: {String.to_atom(key), val}
-    end)
-  end
-
-  defp word_from_letters(letters) do
-    letters
-    |> Enum.reduce("", fn(letter, acc) ->
-      acc <> letter.letter
-    end)
   end
 
   defp update_scores(board, players) do
@@ -154,26 +145,45 @@ defmodule Library.Game do
     |> Enum.map(fn(player) ->
       %{player | score: Board.letter_count(board, player.index) }
     end)
+    |> Enum.sort(&(&1.score > &2.score))
   end
 
   defp update_board(word, player_index, board) do
     word
-    |> atomize_word
     |> Board.add_word(player_index, board)
     |> Board.surrounded
   end
 
-  defp update_wordlist(word, wordlist) do
-    w = word
-    |> atomize_word
-    |> word_from_letters
-    List.insert_at(wordlist, 0, w)
+  defp update_wordlist(word, wordlist, player_index) do
+    List.insert_at(wordlist, 0, %{word: word_string(word), played_by: player_index})
+  end
+
+  defp word_string(letters) do
+    letters
+    |> Enum.reduce("", fn(letter, acc) ->
+      acc <> letter.letter
+    end)
   end
 
   defp find_player(id, players) do
     players
-    |> Enum.find(fn(player) ->
-      player.id == id end)
+    |> Enum.find(fn(player) -> player.id == id end)
+  end
+
+  defp word_used_previously(wordlist, letters) do
+    Enum.any?(wordlist, &(&1.word == word_string letters))
+  end
+
+  defp invalid_word(letters) do
+    case Dictionary.check_word word_string(letters) do
+      {:invalid, _} -> true
+      _ -> false
+    end
+  end
+
+  defp clear_scores(players) do
+    players
+    |> Enum.map(&Map.put(&1, :score, 0))
   end
 
 end

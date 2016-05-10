@@ -58,8 +58,8 @@ update action model =
       , Effects.none
       )
 
-    SubmitFailed status ->
-      ( { model | errorMessage = "Invalid word" }
+    SubmitFailed errorMessage ->
+      ( { model | errorMessage = errorMessage }
       , Effects.none
       )
 

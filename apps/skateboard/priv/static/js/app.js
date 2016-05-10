@@ -11871,9 +11871,10 @@ Elm.Models.make = function (_elm) {
                       ,errorMessage: "Welcome to LettersMash"};
    var Model = F3(function (a,b,c) {    return {candidate: a,boardState: b,errorMessage: c};});
    var BoardState = F4(function (a,b,c,d) {    return {board: a,players: b,wordlist: c,game_over: d};});
+   var Word = F2(function (a,b) {    return {word: a,played_by: b};});
    var Player = F3(function (a,b,c) {    return {name: a,index: b,score: c};});
    var Letter = F4(function (a,b,c,d) {    return {letter: a,id: b,owner: c,surrounded: d};});
-   return _elm.Models.values = {_op: _op,Letter: Letter,Player: Player,BoardState: BoardState,Model: Model,initialModel: initialModel};
+   return _elm.Models.values = {_op: _op,Letter: Letter,Player: Player,Word: Word,BoardState: BoardState,Model: Model,initialModel: initialModel};
 };
 Elm.Actions = Elm.Actions || {};
 Elm.Actions.make = function (_elm) {
@@ -11963,7 +11964,6 @@ Elm.Views.make = function (_elm) {
       _U.list([$Html$Attributes.$class("alert alert-warning")]),
       _U.list([$Html.text(model.errorMessage)]));
    });
-   var wordlistView = function (word) {    return A2($Html.div,_U.list([]),_U.list([A2($Html.h4,_U.list([]),_U.list([$Html.text(word)]))]));};
    var hideClear = function (candidate) {    return _U.eq($List.length(candidate),0);};
    var hideGameover = function (boardState) {    return $Basics.not(boardState.game_over);};
    var hideSubmit = function (candidate) {    return _U.cmp($List.length(candidate),4) < 0;};
@@ -11982,6 +11982,11 @@ Elm.Views.make = function (_elm) {
       return A2($Html.div,
       _U.list([playerStyle(player)]),
       _U.list([A2($Html.h4,_U.list([]),_U.list([$Html.text(A2($Basics._op["++"],player.name,A2($Basics._op["++"]," ",$Basics.toString(player.score))))]))]));
+   };
+   var wordColour = function (word) {    return A2($Maybe.withDefault,"grey",A2($Array.get,word.played_by,$Array.fromList(colors)));};
+   var wordStyle = function (word) {    return $Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "background-color",_1: wordColour(word)}]));};
+   var wordlistView = function (word) {
+      return A2($Html.div,_U.list([wordStyle(word)]),_U.list([A2($Html.h4,_U.list([]),_U.list([$Html.text(word.word)]))]));
    };
    var view = F2(function (address,model) {
       return A2($Html.div,
@@ -12043,8 +12048,10 @@ Elm.Views.make = function (_elm) {
                               ,flash: flash
                               ,letterStyle: letterStyle
                               ,playerStyle: playerStyle
+                              ,wordStyle: wordStyle
                               ,letterColour: letterColour
                               ,playerColour: playerColour
+                              ,wordColour: wordColour
                               ,letterClass: letterClass};
 };
 Elm.Update = Elm.Update || {};
@@ -12079,7 +12086,7 @@ Elm.Update.make = function (_elm) {
                                   ,_1: $Effects.none};
          case "UpdateBoard": return {ctor: "_Tuple2",_0: _U.update(model,{boardState: _p0._0}),_1: $Effects.none};
          case "SubmitSuccess": return {ctor: "_Tuple2",_0: _U.update(model,{candidate: _U.list([])}),_1: $Effects.none};
-         case "SubmitFailed": return {ctor: "_Tuple2",_0: _U.update(model,{errorMessage: "Invalid word"}),_1: $Effects.none};
+         case "SubmitFailed": return {ctor: "_Tuple2",_0: _U.update(model,{errorMessage: _p0._0}),_1: $Effects.none};
          default: return {ctor: "_Tuple2",_0: model,_1: $Effects.none};}
    });
    return _elm.Update.values = {_op: _op,appendLetter: appendLetter,update: update};
@@ -12150,7 +12157,11 @@ Elm.GameBoard.make = function (_elm) {
                                                                                                                  v);
                                                                                                               })) : _U.badPort("an array",v.players)
                                                                                                               ,wordlist: typeof v.wordlist === "object" && v.wordlist instanceof Array ? Elm.Native.List.make(_elm).fromArray(v.wordlist.map(function (v) {
-                                                                                                                 return typeof v === "string" || typeof v === "object" && v instanceof String ? v : _U.badPort("a string",
+                                                                                                                 return typeof v === "object" && "word" in v && "played_by" in v ? {_: {}
+                                                                                                                                                                                   ,word: typeof v.word === "string" || typeof v.word === "object" && v.word instanceof String ? v.word : _U.badPort("a string",
+                                                                                                                                                                                   v.word)
+                                                                                                                                                                                   ,played_by: typeof v.played_by === "number" && isFinite(v.played_by) && Math.floor(v.played_by) === v.played_by ? v.played_by : _U.badPort("an integer",
+                                                                                                                                                                                   v.played_by)} : _U.badPort("an object with fields `word`, `played_by`",
                                                                                                                  v);
                                                                                                               })) : _U.badPort("an array",v.wordlist)
                                                                                                               ,game_over: typeof v.game_over === "boolean" ? v.game_over : _U.badPort("a boolean (true or false)",

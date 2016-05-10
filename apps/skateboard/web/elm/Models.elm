@@ -24,10 +24,16 @@ type alias Candidate =
   List Letter
 
 
+type alias Word =
+  { word : String
+  , played_by : Int
+  }
+
+
 type alias BoardState =
   { board : Board
   , players : List Player
-  , wordlist : List String
+  , wordlist : List Word
   , game_over : Bool
   }
 
