@@ -1,8 +1,8 @@
-module Actions (..) where
+module Actions exposing (..)
 
 import Models exposing (..)
 
-type Action
+type Msg
   = NoOp
   | Select Letter
   | Submit
