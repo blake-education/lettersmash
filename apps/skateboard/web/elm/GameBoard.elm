@@ -15,7 +15,7 @@ main =
     { init = init
     , update = update
     , view = view
-    , subscriptions = \_ -> Sub.none
+    , subscriptions = subscriptions
     }
 
 
@@ -49,15 +49,14 @@ update msg model =
 
 
     Select letter ->
-      --( { model | candidate = appendLetter letter model.candidate }
-      ( model
+      ( { model | candidate = appendLetter letter model.candidate }
       , Cmd.none
       )
 
     Clear ->
       ( { model |
         candidate = []
-        ,errorMessage = "" }
+        , errorMessage = "" }
       , Cmd.none
       )
 
@@ -92,9 +91,8 @@ update msg model =
 
 -- outgoing ports
 
-port submit : String -> Cmd msg
+port submit : List Letter -> Cmd msg
 port requestNewGame : String -> Cmd msg
-
 
 
 -- incoming ports
@@ -106,13 +104,12 @@ port submitSuccess : (String -> msg) -> Sub msg
 port submitFailed : (String -> msg) -> Sub msg
 
 
---incomingActions : Signal Action
---incomingActions =
-  ----Signal.map UpdateBoard boardState
-  --Signal.mergeMany
-    --[ Signal.map UpdateBoard boardState
-    --, Signal.map GameOver gameOver
-    --, Signal.map SubmitSuccess submitSuccess
-    --, Signal.map SubmitFailed submitFailed
-    --]
+subscriptions : Model -> Sub Msg
+subscriptions model =
+  Sub.batch
+    [ boardState UpdateBoard
+    , submitSuccess SubmitSuccess
+    , submitFailed SubmitFailed
+    , gameOver GameOver
+    ]
 

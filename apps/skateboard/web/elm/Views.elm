@@ -84,6 +84,7 @@ hideSubmit : Candidate -> Bool
 hideSubmit candidate =
   length candidate < 4
 
+
 hideGameover : BoardState -> Bool
 hideGameover boardState =
   not boardState.game_over
