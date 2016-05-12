@@ -72,7 +72,7 @@ defmodule Library.Game do
       invalid_word(word) ->
         {:reply, {:error, "Invalid word"}, game_state}
       game_state.game_over ->
-        {:reply, {:error, "game over"}, game_state}
+        {:reply, {:error, "Game Over"}, game_state}
       true ->
         player = find_player(String.to_integer(player_id), game_state.players)
         new_board = update_board(word, player.index, game_state.board)
