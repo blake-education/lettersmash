@@ -20,21 +20,8 @@ import "phoenix_html"
 
 import socket from "./socket"
 
-const initialState = {
-    boardState:
-    {
-        board: [],
-        players: [],
-        wordlist: [],
-        game_over: false
-    },
-    gameOver: "",
-    submitSuccess: "",
-    submitFailed: ""
-};
-
 const elmDiv = document.getElementById('elm-container');
-const elmApp = Elm.embed(Elm.GameBoard, elmDiv, initialState);
+const elmApp = Elm.GameBoard.embed(elmDiv);
 
 /* we will do this via channels eventually*/
 //elmApp.ports.boardState.send(initialState.boardState);
