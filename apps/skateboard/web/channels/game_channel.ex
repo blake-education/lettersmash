@@ -31,7 +31,6 @@ defmodule Skateboard.GameChannel do
     game = socket.assigns.game
     case Game.submit_word(game, atomize(letters), socket.assigns.user_id) do
       {:error, reason} ->
-        IO.puts reason
         push(socket, "submission_failed", %{message: reason})
       _ ->
         broadcast!(socket, "board_state", Game.display_state(game))
@@ -43,7 +42,7 @@ defmodule Skateboard.GameChannel do
   def handle_in("new_game", payload, socket) do
     game = socket.assigns.game
     Game.new_game(game)
-    push(socket, "board_state", Game.display_state(game))
+    broadcast!(socket, "board_state", Game.display_state(game))
 
     {:reply, {:ok, payload}, socket}
   end
