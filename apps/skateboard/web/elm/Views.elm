@@ -1,9 +1,7 @@
-module Views (..) where
+module Views exposing (..)
 
 import Actions exposing (..)
 import Models exposing (..)
-import LocalEffects exposing (..)
-import Effects exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events as Events
@@ -29,16 +27,16 @@ colors =
   ]
 
 
-view : Signal.Address Action -> Model -> Html
-view address model =
+view : Model -> Html Msg
+view model =
   div
     [ class "outer"]
     [ div
       [ class "row" ]
-      [ flash address model
+      [ flash model
       , div
           [ class "board col-md-12" ]
-          (List.map (boardRow address) model.boardState.board)
+          (List.map boardRow model.boardState.board)
       ]
     , div
       [ class "row" ]
@@ -49,16 +47,16 @@ view address model =
           [ div
             [ class "btn-group"]
             [ button
-                [ class "btn btn-default", disabled (hideClear model.candidate), Events.onClick address Clear ]
+                [ class "btn btn-default", disabled (hideClear model.candidate), Events.onClick Clear ]
                 [ text "Clear" ]
             , button
-                [ class "btn btn-default", disabled (hideClear model.candidate), Events.onClick address Backspace ]
+                [ class "btn btn-default", disabled (hideClear model.candidate), Events.onClick Backspace ]
                 [ text "<-" ]
             , button
-                [ class "btn btn-primary", disabled (hideSubmit model.candidate), Events.onClick address Submit ]
+                [ class "btn btn-primary", disabled (hideSubmit model.candidate), Events.onClick Submit ]
                 [ text "Submit" ]
             , button
-                [ class "btn btn", disabled (not model.boardState.game_over), Events.onClick address RequestNewGame ]
+                [ class "btn btn", disabled (not model.boardState.game_over), Events.onClick RequestNewGame ]
                 [ text "New Game" ]
             ]
           ]
@@ -86,6 +84,7 @@ hideSubmit : Candidate -> Bool
 hideSubmit candidate =
   length candidate < 4
 
+
 hideGameover : BoardState -> Bool
 hideGameover boardState =
   not boardState.game_over
@@ -96,39 +95,39 @@ hideClear candidate =
   length candidate == 0
 
 
-playerView : Player -> Html
+playerView : Player -> Html msg
 playerView player =
   div
     [ playerStyle player ]
     [ h4 [] [ text (player.name ++ " " ++ toString (player.score)) ] ]
 
 
-wordlistView : Word -> Html
+wordlistView : Word -> Html msg
 wordlistView word  =
   div
     [ wordStyle word ]
     [ h4 [] [ text word.word ] ]
 
 
-boardRow : Signal.Address Action -> BoardRow -> Html
-boardRow address letters =
+boardRow : BoardRow -> Html Msg
+boardRow letters =
   div
     []
-    (List.map (letterView address) letters)
+    (List.map letterView letters)
 
 
-letterView : Signal.Address Action -> Letter -> Html
-letterView address letter =
+letterView : Letter -> Html Msg
+letterView letter =
   span
     [ class(letterClass letter)
     , letterStyle letter
-    , Events.onClick address (Select letter)
+    , Events.onClick (Select letter)
     ]
     [ text (letter.letter) ]
 
 
-flash : Signal.Address Action -> Model -> Html
-flash address model =
+flash : Model -> Html Msg
+flash model =
   if String.isEmpty model.errorMessage then
     span [] []
   else
@@ -138,17 +137,17 @@ flash address model =
       [ text model.errorMessage ]
 
 
-letterStyle : Letter -> Attribute
+letterStyle : Letter -> Attribute msg
 letterStyle letter =
   style [ ( "background-color", letterColour letter ) ]
 
 
-playerStyle : Player -> Attribute
+playerStyle : Player -> Attribute msg
 playerStyle player =
   style [ ( "background-color", playerColour player ) ]
 
 
-wordStyle : Word -> Attribute
+wordStyle : Word -> Attribute msg
 wordStyle word =
   style [ ( "background-color", wordColour word ) ]
 

@@ -1,72 +1,115 @@
-module GameBoard (..) where
+port module GameBoard exposing (..)
 
 import Actions exposing (..)
 import Models exposing (..)
 import Views exposing (..)
-import Update exposing (..)
-import LocalEffects exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Task exposing (..)
-import Effects exposing (..)
-import StartApp as StartApp
+import Html.App as Html
+import String
+import List exposing (reverse, member, drop)
 
 
-app : StartApp.App Model
-app =
-  StartApp.start
+main =
+  Html.program
     { init = init
     , update = update
     , view = view
-    , inputs = [ incomingActions ]
+    , subscriptions = subscriptions
     }
 
 
-main : Signal Html
-main =
-  app.html
-
-
-port tasks : Signal (Task Never ())
-port tasks =
-  app.tasks
-
-
-init : ( Model, Effects Action )
+init : ( Model, Cmd Msg )
 init =
-  ( initialModel, Effects.none )
+  ( initialModel, Cmd.none )
 
+
+-- UPDATE
+
+
+appendLetter : Letter -> Candidate -> Candidate
+appendLetter letter candidate =
+  if member letter candidate then
+    candidate
+  else
+    reverse (letter :: reverse candidate)
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+  case msg of
+    Submit ->
+      ( model
+      , submit model.candidate
+      )
+
+    RequestNewGame ->
+      ( model
+      , requestNewGame ""
+      )
+
+
+    Select letter ->
+      ( { model | candidate = appendLetter letter model.candidate }
+      , Cmd.none
+      )
+
+    Clear ->
+      ( { model |
+        candidate = []
+        , errorMessage = "" }
+      , Cmd.none
+      )
+
+    Backspace ->
+      ( { model |
+        candidate = reverse(drop 1 (reverse model.candidate ))
+        ,errorMessage = "" }
+      , Cmd.none
+      )
+
+    UpdateBoard boardState ->
+      ( { model | boardState = boardState }
+      , Cmd.none
+      )
+
+    SubmitSuccess status ->
+      ( { model | candidate = [] }
+      , Cmd.none
+      )
+
+    SubmitFailed errorMessage ->
+      ( { model | errorMessage = errorMessage }
+      , Cmd.none
+      )
+
+    _ ->
+      ( model
+      , Cmd.none
+      )
 
 -- PORTS
 
 -- outgoing ports
 
-
-port submit : Signal Candidate
-port submit =
-  submitMailbox.signal
-
-port requestNewGame : Signal String
-port requestNewGame =
-  newGameMailbox.signal
+port submit : List Letter -> Cmd msg
+port requestNewGame : String -> Cmd msg
 
 
 -- incoming ports
 
 
-port boardState : Signal BoardState
-port gameOver : Signal String
-port submitSuccess : Signal String
-port submitFailed : Signal String
+port boardState : (BoardState -> msg) -> Sub msg
+port gameOver : (String -> msg) -> Sub msg
+port submitSuccess : (String -> msg) -> Sub msg
+port submitFailed : (String -> msg) -> Sub msg
 
 
-incomingActions : Signal Action
-incomingActions =
-  --Signal.map UpdateBoard boardState
-  Signal.mergeMany
-    [ Signal.map UpdateBoard boardState
-    , Signal.map GameOver gameOver
-    , Signal.map SubmitSuccess submitSuccess
-    , Signal.map SubmitFailed submitFailed
+subscriptions : Model -> Sub Msg
+subscriptions model =
+  Sub.batch
+    [ boardState UpdateBoard
+    , submitSuccess SubmitSuccess
+    , submitFailed SubmitFailed
+    , gameOver GameOver
     ]
 

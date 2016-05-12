@@ -4,7 +4,7 @@ A multiplayer LetterPress game in Elixir, Phoenix and Elm
 
 ## Install Elm
 
-From http://elm-lang.org/install
+From http://elm-lang.org/install - requires 0.17
 
 
 ## Configure app
@@ -18,7 +18,7 @@ From http://elm-lang.org/install
 > mix ecto.create
 > mix ecto.migrate
 > cd web/elm
-> elm package install evancz/elm-html
+> elm package install
 > cd ../../../..
 > iex -S mix phoenix.server
 > open localhost:4000
