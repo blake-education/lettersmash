@@ -85,12 +85,23 @@ form.link, form.button {
 .letter {
   background-color: LightGray;
   line-height: 1.10;
-  padding-left: 30px;
-  padding-right: 30px;
+  padding-left: 20px;
+  padding-right: 20px;
   text-align: center;
   overflow: auto;
   font-family: "Courier";
   font-size: 60px;
+}
+
+.mini-letter {
+  background-color: LightGray;
+  line-height: 1.10;
+  padding-left: 10px;
+  padding-right: 10px;
+  text-align: center;
+  overflow: auto;
+  font-family: "Andale Mono, Courier";
+  font-size: 40px;
 }
 
 .surrounded {

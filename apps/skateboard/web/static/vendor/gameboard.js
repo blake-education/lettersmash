@@ -7210,6 +7210,9 @@ var _elm_lang$html$Html_Events$Options = F2(
 		return {stopPropagation: a, preventDefault: b};
 	});
 
+var _blake_education$lettersmash$Views$gameOverClass = function (over) {
+	return over ? 'game-over' : 'game-over hidden';
+};
 var _blake_education$lettersmash$Views$letterSelected = F2(
 	function (letter, candidate) {
 		return A2(
@@ -7313,6 +7316,23 @@ var _blake_education$lettersmash$Views$boardRow = F2(
 				_blake_education$lettersmash$Views$letterView(candidate),
 				letters));
 	});
+var _blake_education$lettersmash$Views$candidateLetterView = function (letter) {
+	return A2(
+		_elm_lang$html$Html$span,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html_Attributes$class(
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					'mini ',
+					_blake_education$lettersmash$Views$letterClass(letter))),
+				_blake_education$lettersmash$Views$letterStyle(letter)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html$text(letter.letter)
+			]));
+};
 var _blake_education$lettersmash$Views$playerColour = function (player) {
 	return A2(
 		_elm_lang$core$Maybe$withDefault,
@@ -7416,6 +7436,27 @@ var _blake_education$lettersmash$Views$view = function (model) {
 				_elm_lang$core$Native_List.fromArray(
 					[
 						_blake_education$lettersmash$Views$flash(model),
+						A2(
+						_elm_lang$html$Html$div,
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html_Attributes$class(
+								A2(
+									_elm_lang$core$Basics_ops['++'],
+									'col-md-12 ',
+									_blake_education$lettersmash$Views$gameOverClass(model.boardState.game_over)))
+							]),
+						_elm_lang$core$Native_List.fromArray(
+							[
+								A2(
+								_elm_lang$html$Html$h2,
+								_elm_lang$core$Native_List.fromArray(
+									[]),
+								_elm_lang$core$Native_List.fromArray(
+									[
+										_elm_lang$html$Html$text('Game Over')
+									]))
+							])),
 						A2(
 						_elm_lang$html$Html$div,
 						_elm_lang$core$Native_List.fromArray(
@@ -7537,18 +7578,7 @@ var _blake_education$lettersmash$Views$view = function (model) {
 									[
 										_elm_lang$html$Html_Attributes$class('candidate')
 									]),
-								_elm_lang$core$Native_List.fromArray(
-									[
-										_elm_lang$html$Html$text(
-										A3(
-											_elm_lang$core$List$foldl,
-											F2(
-												function (c, a) {
-													return A2(_elm_lang$core$Basics_ops['++'], a, c.letter);
-												}),
-											'',
-											model.candidate))
-									]))
+								A2(_elm_lang$core$List$map, _blake_education$lettersmash$Views$candidateLetterView, model.candidate))
 							]))
 					])),
 				A2(

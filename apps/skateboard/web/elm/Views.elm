@@ -35,8 +35,11 @@ view model =
       [ class "row" ]
       [ flash model
       , div
-          [ class "board col-md-12" ]
-          (List.map (boardRow model.candidate) model.boardState.board)
+        [ class ("col-md-12 " ++ (gameOverClass model.boardState.game_over))]
+        [ h2 [] [text "Game Over"]]
+      , div
+        [ class "board col-md-12" ]
+        (List.map (boardRow model.candidate) model.boardState.board)
       ]
     , div
       [ class "row" ]
@@ -66,7 +69,10 @@ view model =
       [ class "row" ]
       [ div
         [ class "board col-md-12" ]
-        [h2 [ class "candidate" ] [ text (List.foldl (\c a -> a ++ c.letter) "" model.candidate) ]]
+        [h2
+          [ class "candidate" ]
+          (List.map candidateLetterView model.candidate)
+        ]
       ]
     , div
       [ class "row" ]
@@ -119,14 +125,22 @@ boardRow candidate letters =
 letterView : Candidate -> Letter -> Html Msg
 letterView candidate letter =
   span
-    [ 
-      classList 
+    [
+      classList
         [ ("letter", True)
         , ("surrounded", letter.surrounded)
         , ("selected", (letterSelected letter candidate) == True)
       ]
     , letterStyle letter
     , Events.onClick (Select letter)
+    ]
+    [ text (letter.letter) ]
+
+candidateLetterView : Letter -> Html Msg
+candidateLetterView letter =
+  span
+    [ class( "mini " ++ (letterClass letter))
+    , letterStyle letter
     ]
     [ text (letter.letter) ]
 
@@ -174,10 +188,18 @@ wordColour word =
 letterClass : Letter -> String
 letterClass letter =
   if letter.surrounded then
-     "letter surrounded"
+    "letter surrounded"
   else
     "letter"
 
 letterSelected : Letter -> Candidate ->  Bool
 letterSelected letter candidate =
   List.any (\c -> letter.id == c.id) candidate
+
+gameOverClass : Bool -> String
+gameOverClass over =
+  if over then
+    "game-over"
+  else
+    "game-over hidden"
+
