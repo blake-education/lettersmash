@@ -62,6 +62,6 @@ initialModel =
       , wordlist = []
       , game_over = False
       }
-  , errorMessage = "Welcome to LettersMash"
+  , errorMessage = ""
   }
 

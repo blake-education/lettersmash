@@ -35,7 +35,12 @@ view model =
       [ class "row" ]
       [ flash model
       , div
-        [ class ("col-md-12 " ++ (gameOverClass model.boardState.game_over))]
+        [ classList [
+            ("col-md-12", True),
+            ("game-over", True),
+            ("hidden", not model.boardState.game_over)
+          ]
+        ]
         [ h2 [] [text "Game Over"]]
       , div
         [ class "board col-md-12" ]
@@ -104,14 +109,14 @@ hideClear candidate =
 playerView : Player -> Html msg
 playerView player =
   div
-    [ playerStyle player ]
+    [ backgroundStyle player.index ]
     [ h4 [] [ text (player.name ++ " " ++ toString (player.score)) ] ]
 
 
 wordlistView : Word -> Html msg
 wordlistView word  =
   div
-    [ wordStyle word ]
+    [ backgroundStyle word.played_by ]
     [ h4 [] [ text word.word ] ]
 
 
@@ -125,22 +130,25 @@ boardRow candidate letters =
 letterView : Candidate -> Letter -> Html Msg
 letterView candidate letter =
   span
-    [
-      classList
-        [ ("letter", True)
-        , ("surrounded", letter.surrounded)
-        , ("selected", (letterSelected letter candidate) == True)
+    [ classList
+      [ ("letter", True)
+      , ("surrounded", letter.surrounded)
+      , ("selected", (letterSelected letter candidate) == True)
       ]
-    , letterStyle letter
+    , backgroundStyle letter.owner
     , Events.onClick (Select letter)
     ]
     [ text (letter.letter) ]
 
+
 candidateLetterView : Letter -> Html Msg
 candidateLetterView letter =
   span
-    [ class( "mini " ++ (letterClass letter))
-    , letterStyle letter
+    [ classList
+      [ ("mini letter", True)
+      , ("surrounded", letter.surrounded)
+      ]
+    , backgroundStyle letter.owner
     ]
     [ text (letter.letter) ]
 
@@ -156,50 +164,14 @@ flash model =
       [ text model.errorMessage ]
 
 
-letterStyle : Letter -> Attribute msg
-letterStyle letter =
-  style [ ( "background-color", letterColour letter ) ]
+backgroundStyle : Int -> Attribute msg
+backgroundStyle index =
+  style [ ( "background-color", colourFromList index ) ]
 
-
-playerStyle : Player -> Attribute msg
-playerStyle player =
-  style [ ( "background-color", playerColour player ) ]
-
-
-wordStyle : Word -> Attribute msg
-wordStyle word =
-  style [ ( "background-color", wordColour word ) ]
-
-
-letterColour : Letter -> String
-letterColour letter =
-  Maybe.withDefault "grey" (get letter.owner (fromList colors))
-
-
-playerColour : Player -> String
-playerColour player =
-  Maybe.withDefault "grey" (get player.index (fromList colors))
-
-wordColour : Word -> String
-wordColour word =
-  Maybe.withDefault "grey" (get word.played_by (fromList colors))
-
-
-letterClass : Letter -> String
-letterClass letter =
-  if letter.surrounded then
-    "letter surrounded"
-  else
-    "letter"
+colourFromList : Int -> String
+colourFromList index =
+  Maybe.withDefault "grey" (get index (fromList colors))
 
 letterSelected : Letter -> Candidate ->  Bool
 letterSelected letter candidate =
   List.any (\c -> letter.id == c.id) candidate
-
-gameOverClass : Bool -> String
-gameOverClass over =
-  if over then
-    "game-over"
-  else
-    "game-over hidden"
-
