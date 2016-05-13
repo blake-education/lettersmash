@@ -112,3 +112,7 @@ form.link, form.button {
 .selected {
   opacity: 0.25;
 }
+
+.board {
+  cursor: pointer;
+}
