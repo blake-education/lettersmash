@@ -113,5 +113,9 @@ form.link, form.button {
   opacity: 0.25;
 }
 
+.board {
+  cursor: pointer;
+}
+
 
 /*# sourceMappingURL=app.css.map*/
