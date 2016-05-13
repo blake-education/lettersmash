@@ -7210,6 +7210,15 @@ var _elm_lang$html$Html_Events$Options = F2(
 		return {stopPropagation: a, preventDefault: b};
 	});
 
+var _blake_education$lettersmash$Views$letterSelected = F2(
+	function (letter, candidate) {
+		return A2(
+			_elm_lang$core$List$any,
+			function (c) {
+				return _elm_lang$core$Native_Utils.eq(letter.id, c.id);
+			},
+			candidate);
+	});
 var _blake_education$lettersmash$Views$letterClass = function (letter) {
 	return letter.surrounded ? 'letter surrounded' : 'letter';
 };
@@ -7265,29 +7274,45 @@ var _blake_education$lettersmash$Views$letterStyle = function (letter) {
 			}
 			]));
 };
-var _blake_education$lettersmash$Views$letterView = function (letter) {
-	return A2(
-		_elm_lang$html$Html$span,
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_elm_lang$html$Html_Attributes$class(
-				_blake_education$lettersmash$Views$letterClass(letter)),
-				_blake_education$lettersmash$Views$letterStyle(letter),
-				_elm_lang$html$Html_Events$onClick(
-				_blake_education$lettersmash$Actions$Select(letter))
-			]),
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_elm_lang$html$Html$text(letter.letter)
-			]));
-};
-var _blake_education$lettersmash$Views$boardRow = function (letters) {
-	return A2(
-		_elm_lang$html$Html$div,
-		_elm_lang$core$Native_List.fromArray(
-			[]),
-		A2(_elm_lang$core$List$map, _blake_education$lettersmash$Views$letterView, letters));
-};
+var _blake_education$lettersmash$Views$letterView = F2(
+	function (candidate, letter) {
+		return A2(
+			_elm_lang$html$Html$span,
+			_elm_lang$core$Native_List.fromArray(
+				[
+					_elm_lang$html$Html_Attributes$classList(
+					_elm_lang$core$Native_List.fromArray(
+						[
+							{ctor: '_Tuple2', _0: 'letter', _1: true},
+							{ctor: '_Tuple2', _0: 'surrounded', _1: letter.surrounded},
+							{
+							ctor: '_Tuple2',
+							_0: 'selected',
+							_1: _elm_lang$core$Native_Utils.eq(
+								A2(_blake_education$lettersmash$Views$letterSelected, letter, candidate),
+								true)
+						}
+						])),
+					_blake_education$lettersmash$Views$letterStyle(letter),
+					_elm_lang$html$Html_Events$onClick(
+					_blake_education$lettersmash$Actions$Select(letter))
+				]),
+			_elm_lang$core$Native_List.fromArray(
+				[
+					_elm_lang$html$Html$text(letter.letter)
+				]));
+	});
+var _blake_education$lettersmash$Views$boardRow = F2(
+	function (candidate, letters) {
+		return A2(
+			_elm_lang$html$Html$div,
+			_elm_lang$core$Native_List.fromArray(
+				[]),
+			A2(
+				_elm_lang$core$List$map,
+				_blake_education$lettersmash$Views$letterView(candidate),
+				letters));
+	});
 var _blake_education$lettersmash$Views$playerColour = function (player) {
 	return A2(
 		_elm_lang$core$Maybe$withDefault,
@@ -7397,7 +7422,10 @@ var _blake_education$lettersmash$Views$view = function (model) {
 							[
 								_elm_lang$html$Html_Attributes$class('board col-md-12')
 							]),
-						A2(_elm_lang$core$List$map, _blake_education$lettersmash$Views$boardRow, model.boardState.board))
+						A2(
+							_elm_lang$core$List$map,
+							_blake_education$lettersmash$Views$boardRow(model.candidate),
+							model.boardState.board))
 					])),
 				A2(
 				_elm_lang$html$Html$div,

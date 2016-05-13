@@ -97,3 +97,7 @@ form.link, form.button {
   filter: saturate(180%);
   font-weight: 800;
 }
+
+.selected {
+  opacity: 0.25;
+}

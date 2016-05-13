@@ -6,7 +6,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events as Events
 import String
-import List exposing (length)
+import List exposing (length, member)
 import Array exposing (fromList, get)
 import Json.Encode exposing (string)
 
@@ -36,7 +36,7 @@ view model =
       [ flash model
       , div
           [ class "board col-md-12" ]
-          (List.map boardRow model.boardState.board)
+          (List.map (boardRow model.candidate) model.boardState.board)
       ]
     , div
       [ class "row" ]
@@ -109,17 +109,22 @@ wordlistView word  =
     [ h4 [] [ text word.word ] ]
 
 
-boardRow : BoardRow -> Html Msg
-boardRow letters =
+boardRow : Candidate -> BoardRow -> Html Msg
+boardRow candidate letters =
   div
     []
-    (List.map letterView letters)
+    (List.map (letterView candidate) letters)
 
 
-letterView : Letter -> Html Msg
-letterView letter =
+letterView : Candidate -> Letter -> Html Msg
+letterView candidate letter =
   span
-    [ class(letterClass letter)
+    [ 
+      classList 
+        [ ("letter", True)
+        , ("surrounded", letter.surrounded)
+        , ("selected", (letterSelected letter candidate) == True)
+      ]
     , letterStyle letter
     , Events.onClick (Select letter)
     ]
@@ -173,3 +178,6 @@ letterClass letter =
   else
     "letter"
 
+letterSelected : Letter -> Candidate ->  Bool
+letterSelected letter candidate =
+  List.any (\c -> letter.id == c.id) candidate
