@@ -109,5 +109,9 @@ form.link, form.button {
   font-weight: 800;
 }
 
+.selected {
+  opacity: 0.25;
+}
+
 
 /*# sourceMappingURL=app.css.map*/
