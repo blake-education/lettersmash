@@ -40,6 +40,14 @@ defmodule Library.Game do
     GenServer.cast(pid, {:remove_player, player})
   end
 
+  def finished(pid) do
+    GenServer.call(pid, :finished)
+  end
+
+  def players(pid) do
+    GenServer.call(pid, :players)
+  end
+
   def display_state(pid), do: GenServer.call(pid, :display_state)
   def list_state(pid), do: GenServer.call(pid, :list_state)
 
@@ -57,17 +65,9 @@ defmodule Library.Game do
   end
 
   def handle_call({:submit_word, word, player_id}, _from, game_state) do
-    # this will delegate out to the dictionary to see if this is a valid word
-    #
-    # Would love to use this type of system.
-    #
-    # with {:ok} <- words_consist_of_valid_letters?(word),
-    #      {:ok} <- have_not_played_word?(player, word),
-    # do:  {:reply, {:ok, word}, game_state}
-    # else {:reply, {:error, "word not valid", game_state}}
-
     cond do
       word_used_previously(game_state.wordlist, word) ->
+        IO.puts "WORD USED"
         {:reply, {:error, "Word already played"}, game_state}
       invalid_word(word) ->
         {:reply, {:error, "Invalid word"}, game_state}
@@ -90,6 +90,14 @@ defmodule Library.Game do
 
   def handle_call(:list_state, _from, game_state) do
     {:reply, game_state, game_state}
+  end
+
+  def handle_call(:finished, _from, game_state) do
+    {:reply, game_state.game_over, game_state}
+  end
+
+  def handle_call(:players, _from, game_state) do
+    {:reply, game_state.players, game_state}
   end
 
   def handle_call(:display_state, _from, game_state) do
