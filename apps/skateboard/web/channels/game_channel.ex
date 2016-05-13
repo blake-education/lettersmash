@@ -43,25 +43,8 @@ defmodule Skateboard.GameChannel do
     game = socket.assigns.game
     Game.new_game(game)
     broadcast!(socket, "board_state", Game.display_state(game))
-
     {:reply, {:ok, payload}, socket}
   end
-
-  defp word(letters) do
-    Enum.reduce(letters, "", &(&2 <> &1["letter"]))
-  end
-
-  #def terminate(_message, socket) do
-    #id = socket.assigns.user_id
-    #user = Skateboard.Repo.get(User, id)
-    #user_map = %{id: user.id, name: user.name, score: 0}
-
-    #game = socket.assigns.game
-    #Game.remove_player(game, user_map)
-    #broadcast!(socket, "board_state", Game.display_state(game))
-
-    #{:reply, :ok, socket}
-  #end
 
   def handle_info(_, socket) do
     {:noreply, socket}
