@@ -3710,7 +3710,7 @@ var _blake_education$lettersmash$Models$initialModel = {
 			[]),
 		game_over: false
 	},
-	errorMessage: 'Welcome to LettersMash'
+	errorMessage: ''
 };
 var _blake_education$lettersmash$Models$Letter = F4(
 	function (a, b, c, d) {
@@ -8385,9 +8385,6 @@ var _elm_lang$html$Html_Events$Options = F2(
 		return {stopPropagation: a, preventDefault: b};
 	});
 
-var _blake_education$lettersmash$Views$gameOverClass = function (over) {
-	return over ? 'game-over' : 'game-over hidden';
-};
 var _blake_education$lettersmash$Views$letterSelected = F2(
 	function (letter, candidate) {
 		return A2(
@@ -8397,9 +8394,6 @@ var _blake_education$lettersmash$Views$letterSelected = F2(
 			},
 			candidate);
 	});
-var _blake_education$lettersmash$Views$letterClass = function (letter) {
-	return letter.surrounded ? 'letter surrounded' : 'letter';
-};
 var _blake_education$lettersmash$Views$flash = function (model) {
 	return _elm_lang$core$String$isEmpty(model.errorMessage) ? A2(
 		_elm_lang$html$Html$span,
@@ -8432,24 +8426,69 @@ var _blake_education$lettersmash$Views$hideSubmit = function (candidate) {
 };
 var _blake_education$lettersmash$Views$colors = _elm_lang$core$Native_List.fromArray(
 	['LightGrey', '#ef476f', '#ffd166', '#06d6a0', '#118ab2', '#773b9c', '#247ba0', '#70c1b3', '#b2dbbf', '#f3ffbd', '#ff1654']);
-var _blake_education$lettersmash$Views$letterColour = function (letter) {
+var _blake_education$lettersmash$Views$colourFromList = function (index) {
 	return A2(
 		_elm_lang$core$Maybe$withDefault,
 		'grey',
 		A2(
 			_elm_lang$core$Array$get,
-			letter.owner,
+			index,
 			_elm_lang$core$Array$fromList(_blake_education$lettersmash$Views$colors)));
 };
-var _blake_education$lettersmash$Views$letterStyle = function (letter) {
+var _blake_education$lettersmash$Views$backgroundStyle = function (index) {
 	return _elm_lang$html$Html_Attributes$style(
 		_elm_lang$core$Native_List.fromArray(
 			[
 				{
 				ctor: '_Tuple2',
 				_0: 'background-color',
-				_1: _blake_education$lettersmash$Views$letterColour(letter)
+				_1: _blake_education$lettersmash$Views$colourFromList(index)
 			}
+			]));
+};
+var _blake_education$lettersmash$Views$playerView = function (player) {
+	return A2(
+		_elm_lang$html$Html$div,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_blake_education$lettersmash$Views$backgroundStyle(player.index)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				A2(
+				_elm_lang$html$Html$h4,
+				_elm_lang$core$Native_List.fromArray(
+					[]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text(
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							player.name,
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								' ',
+								_elm_lang$core$Basics$toString(player.score))))
+					]))
+			]));
+};
+var _blake_education$lettersmash$Views$wordlistView = function (word) {
+	return A2(
+		_elm_lang$html$Html$div,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_blake_education$lettersmash$Views$backgroundStyle(word.played_by)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				A2(
+				_elm_lang$html$Html$h4,
+				_elm_lang$core$Native_List.fromArray(
+					[]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text(word.word)
+					]))
 			]));
 };
 var _blake_education$lettersmash$Views$letterView = F2(
@@ -8471,7 +8510,7 @@ var _blake_education$lettersmash$Views$letterView = F2(
 								true)
 						}
 						])),
-					_blake_education$lettersmash$Views$letterStyle(letter),
+					_blake_education$lettersmash$Views$backgroundStyle(letter.owner),
 					_elm_lang$html$Html_Events$onClick(
 					_blake_education$lettersmash$Actions$Select(letter))
 				]),
@@ -8496,101 +8535,17 @@ var _blake_education$lettersmash$Views$candidateLetterView = function (letter) {
 		_elm_lang$html$Html$span,
 		_elm_lang$core$Native_List.fromArray(
 			[
-				_elm_lang$html$Html_Attributes$class(
-				A2(
-					_elm_lang$core$Basics_ops['++'],
-					'mini ',
-					_blake_education$lettersmash$Views$letterClass(letter))),
-				_blake_education$lettersmash$Views$letterStyle(letter)
+				_elm_lang$html$Html_Attributes$classList(
+				_elm_lang$core$Native_List.fromArray(
+					[
+						{ctor: '_Tuple2', _0: 'mini letter', _1: true},
+						{ctor: '_Tuple2', _0: 'surrounded', _1: letter.surrounded}
+					])),
+				_blake_education$lettersmash$Views$backgroundStyle(letter.owner)
 			]),
 		_elm_lang$core$Native_List.fromArray(
 			[
 				_elm_lang$html$Html$text(letter.letter)
-			]));
-};
-var _blake_education$lettersmash$Views$playerColour = function (player) {
-	return A2(
-		_elm_lang$core$Maybe$withDefault,
-		'grey',
-		A2(
-			_elm_lang$core$Array$get,
-			player.index,
-			_elm_lang$core$Array$fromList(_blake_education$lettersmash$Views$colors)));
-};
-var _blake_education$lettersmash$Views$playerStyle = function (player) {
-	return _elm_lang$html$Html_Attributes$style(
-		_elm_lang$core$Native_List.fromArray(
-			[
-				{
-				ctor: '_Tuple2',
-				_0: 'background-color',
-				_1: _blake_education$lettersmash$Views$playerColour(player)
-			}
-			]));
-};
-var _blake_education$lettersmash$Views$playerView = function (player) {
-	return A2(
-		_elm_lang$html$Html$div,
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_blake_education$lettersmash$Views$playerStyle(player)
-			]),
-		_elm_lang$core$Native_List.fromArray(
-			[
-				A2(
-				_elm_lang$html$Html$h4,
-				_elm_lang$core$Native_List.fromArray(
-					[]),
-				_elm_lang$core$Native_List.fromArray(
-					[
-						_elm_lang$html$Html$text(
-						A2(
-							_elm_lang$core$Basics_ops['++'],
-							player.name,
-							A2(
-								_elm_lang$core$Basics_ops['++'],
-								' ',
-								_elm_lang$core$Basics$toString(player.score))))
-					]))
-			]));
-};
-var _blake_education$lettersmash$Views$wordColour = function (word) {
-	return A2(
-		_elm_lang$core$Maybe$withDefault,
-		'grey',
-		A2(
-			_elm_lang$core$Array$get,
-			word.played_by,
-			_elm_lang$core$Array$fromList(_blake_education$lettersmash$Views$colors)));
-};
-var _blake_education$lettersmash$Views$wordStyle = function (word) {
-	return _elm_lang$html$Html_Attributes$style(
-		_elm_lang$core$Native_List.fromArray(
-			[
-				{
-				ctor: '_Tuple2',
-				_0: 'background-color',
-				_1: _blake_education$lettersmash$Views$wordColour(word)
-			}
-			]));
-};
-var _blake_education$lettersmash$Views$wordlistView = function (word) {
-	return A2(
-		_elm_lang$html$Html$div,
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_blake_education$lettersmash$Views$wordStyle(word)
-			]),
-		_elm_lang$core$Native_List.fromArray(
-			[
-				A2(
-				_elm_lang$html$Html$h4,
-				_elm_lang$core$Native_List.fromArray(
-					[]),
-				_elm_lang$core$Native_List.fromArray(
-					[
-						_elm_lang$html$Html$text(word.word)
-					]))
 			]));
 };
 var _blake_education$lettersmash$Views$view = function (model) {
@@ -8615,11 +8570,17 @@ var _blake_education$lettersmash$Views$view = function (model) {
 						_elm_lang$html$Html$div,
 						_elm_lang$core$Native_List.fromArray(
 							[
-								_elm_lang$html$Html_Attributes$class(
-								A2(
-									_elm_lang$core$Basics_ops['++'],
-									'col-md-12 ',
-									_blake_education$lettersmash$Views$gameOverClass(model.boardState.game_over)))
+								_elm_lang$html$Html_Attributes$classList(
+								_elm_lang$core$Native_List.fromArray(
+									[
+										{ctor: '_Tuple2', _0: 'col-md-12', _1: true},
+										{ctor: '_Tuple2', _0: 'game-over', _1: true},
+										{
+										ctor: '_Tuple2',
+										_0: 'hidden',
+										_1: _elm_lang$core$Basics$not(model.boardState.game_over)
+									}
+									]))
 							]),
 						_elm_lang$core$Native_List.fromArray(
 							[
