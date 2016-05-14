@@ -2,6 +2,7 @@ defmodule Library.Game do
   use GenServer
   alias Library.Board
   alias Library.Dictionary
+  alias Library.Player
 
   @generator Library.LetterGenerator
 
@@ -112,7 +113,7 @@ defmodule Library.Game do
     if find_player(player.id, game_state.players) do
       { :noreply, game_state }
     else
-      new_player = Map.put_new(player, :index, game_state.next_index)
+      new_player = %Player{id: player.id, name: player.name, index: game_state.next_index}
       {
         :noreply,
         %{
