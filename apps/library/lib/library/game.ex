@@ -85,6 +85,9 @@ defmodule Library.Game do
               wordlist:  update_wordlist(word, game_state.wordlist, player.index),
               game_over: Board.completed?(new_board)
           }
+        if Board.completed?(new_board) do
+          save_events(new_state.players)
+        end
         {:reply, :ok, new_state}
     end
   end
@@ -193,6 +196,11 @@ defmodule Library.Game do
   defp clear_scores(players) do
     players
     |> Enum.map(&Map.put(&1, :score, 0))
+  end
+
+  defp save_events(players) do
+    players
+    |> Enum.map(&Player.save_event(&1))
   end
 
 end

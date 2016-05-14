@@ -1,16 +1,15 @@
 defmodule Skateboard.GameChannel do
   use Phoenix.Channel
-  alias Skateboard.User
-  alias Skateboard.Event
   alias Skateboard.Repo
+  alias Skateboard.User
   alias Library.Game
 
   def join("game:new", _message, socket) do
     id = socket.assigns.user_id
-    user = Skateboard.Repo.get(User, id)
+    user = Repo.get(User, id)
 
     game = :current_game
-    user_map = %{id: user.id, name: user.name, score: 0}
+    user_map = %{id: user.id, name: user.name}
     Game.add_player(game, user_map)
     send(self, :after_join)
 
@@ -32,10 +31,6 @@ defmodule Skateboard.GameChannel do
       _ ->
         broadcast!(socket, "board_state", Game.display_state(game))
         push(socket, "submission_successful", %{message: "success!"})
-        if Game.finished(game) do
-          save_events(Game.players(game))
-        end
-
     end
     {:reply, :ok, socket}
   end
@@ -61,22 +56,6 @@ defmodule Skateboard.GameChannel do
     |> Enum.map(fn(letter) ->
       for {key, val} <- letter, into: %{}, do: {String.to_atom(key), val}
     end)
-  end
-
-  defp save_events(players) do
-    players
-    |> Enum.map(fn(player) ->
-      save_player(player)
-    end)
-  end
-
-  defp save_player(player) do
-    Repo.insert(%Event{
-      user_id: player.id,
-      game_id: 1,
-      score: player.score,
-      winner: false
-    })
   end
 
 end
