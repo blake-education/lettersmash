@@ -1,14 +1,16 @@
 defmodule Skateboard.GameChannel do
   use Phoenix.Channel
   alias Skateboard.User
+  alias Library.GameSup
   alias Library.Game
 
-  def join("game:new", _message, socket) do
+  def join("game:" <> game_id, _message, socket) do
     id = socket.assigns.user_id
     user = Skateboard.Repo.get(User, id)
 
-    game = :current_game
+    game = find_or_create_game(game_id)
     user_map = %{id: user.id, name: user.name, score: 0}
+
     Game.add_player(game, user_map)
     send(self, :after_join)
 
@@ -17,6 +19,10 @@ defmodule Skateboard.GameChannel do
 
   def handle_info(:after_join, socket) do
     broadcast!(socket, "board_state", Game.display_state(socket.assigns.game))
+    {:noreply, socket}
+  end
+
+  def handle_info(_, socket) do
     {:noreply, socket}
   end
 
@@ -51,21 +57,17 @@ defmodule Skateboard.GameChannel do
     Enum.reduce(letters, "", &(&2 <> &1["letter"]))
   end
 
-  #def terminate(_message, socket) do
-    #id = socket.assigns.user_id
-    #user = Skateboard.Repo.get(User, id)
-    #user_map = %{id: user.id, name: user.name, score: 0}
-
-    #game = socket.assigns.game
-    #Game.remove_player(game, user_map)
-    #broadcast!(socket, "board_state", Game.display_state(game))
-
-    #{:reply, :ok, socket}
-  #end
-
-  def handle_info(_, socket) do
-    {:noreply, socket}
-  end
+  # def terminate(_message, socket) do
+  #   id = socket.assigns.user_id
+  #   user = Skateboard.Repo.get(User, id)
+  #   user_map = %{id: user.id, name: user.name, score: 0}
+  #
+  #   game = socket.assigns.game
+  #   Game.remove_player(game, user_map)
+  #   broadcast!(socket, "board_state", Game.display_state(game))
+  #
+  #   {:reply, :ok, socket}
+  # end
 
   defp atomize(word) do
     word
@@ -74,4 +76,13 @@ defmodule Skateboard.GameChannel do
     end)
   end
 
+  defp find_or_create_game(game_name) do
+    game = GameSup.find_game(game_name)
+
+    unless game do
+      {:ok, game} = GameSup.add_game(game_name)
+    end
+
+    game
+  end
 end
