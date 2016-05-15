@@ -1,12 +1,5 @@
 defmodule Library.Game do
-  use GenServer
-  alias Library.Board
-  alias Library.Dictionary
-
-  @generator Library.LetterGenerator
-
   @moduledoc """
-
     _Example_
     iex> Library.Game.add_player(pid, %{id: 1, name: "abc"})
     :ok
@@ -22,7 +15,13 @@ defmodule Library.Game do
     %{board: [], players: [%{id: 1, name: "abc"}]}
   """
 
-  def start_link, do: GenServer.start_link(__MODULE__, :ok, name: :current_game)
+  use GenServer
+  alias Library.Board
+  alias Library.Dictionary
+
+  def name(pid) do
+    GenServer.call(pid, :name)
+  end
 
   def submit_word(pid, word, player) do
     GenServer.call(pid, {:submit_word, word, player})
@@ -43,10 +42,16 @@ defmodule Library.Game do
   def display_state(pid), do: GenServer.call(pid, :display_state)
   def list_state(pid), do: GenServer.call(pid, :list_state)
 
-  def init(:ok) do
+  # GenServer interface
+  def start_link(game_name) do
+    GenServer.start_link(__MODULE__, game_name, [name: game_id(game_name)])
+  end
+
+  def init(game_id) do
     {
       :ok,
       %{
+        game_id: game_id,
         board: Board.generate,
         players: [],
         wordlist: [],
@@ -54,6 +59,10 @@ defmodule Library.Game do
         next_index: 1
       }
     }
+  end
+
+  def handle_call(:name, _from, game_state) do
+    {:reply, game_state.game_id, game_state}
   end
 
   def handle_call({:submit_word, word, player_id}, _from, game_state) do
@@ -186,4 +195,5 @@ defmodule Library.Game do
     |> Enum.map(&Map.put(&1, :score, 0))
   end
 
+  defp game_id(game_name), do: :"game_#{game_name}"
 end
