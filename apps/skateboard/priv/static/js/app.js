@@ -8404,7 +8404,7 @@ var _blake_education$lettersmash$Views$flash = function (model) {
 		_elm_lang$html$Html$div,
 		_elm_lang$core$Native_List.fromArray(
 			[
-				_elm_lang$html$Html_Attributes$class('alert alert-warning')
+				_elm_lang$html$Html_Attributes$class('col-md-12 alert alert-warning')
 			]),
 		_elm_lang$core$Native_List.fromArray(
 			[
@@ -8423,6 +8423,83 @@ var _blake_education$lettersmash$Views$hideSubmit = function (candidate) {
 	return _elm_lang$core$Native_Utils.cmp(
 		_elm_lang$core$List$length(candidate),
 		4) < 0;
+};
+var _blake_education$lettersmash$Views$buttons = function (model) {
+	return A2(
+		_elm_lang$html$Html$div,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html_Attributes$class('row')
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				A2(
+				_elm_lang$html$Html$div,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$class('col-md-12')
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						A2(
+						_elm_lang$html$Html$div,
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html_Attributes$class('form')
+							]),
+						_elm_lang$core$Native_List.fromArray(
+							[
+								A2(
+								_elm_lang$html$Html$div,
+								_elm_lang$core$Native_List.fromArray(
+									[
+										_elm_lang$html$Html_Attributes$class('btn-group')
+									]),
+								_elm_lang$core$Native_List.fromArray(
+									[
+										A2(
+										_elm_lang$html$Html$button,
+										_elm_lang$core$Native_List.fromArray(
+											[
+												_elm_lang$html$Html_Attributes$class('btn btn-default'),
+												_elm_lang$html$Html_Attributes$disabled(
+												_blake_education$lettersmash$Views$hideClear(model.candidate)),
+												_elm_lang$html$Html_Events$onClick(_blake_education$lettersmash$Actions$Clear)
+											]),
+										_elm_lang$core$Native_List.fromArray(
+											[
+												_elm_lang$html$Html$text('Clear')
+											])),
+										A2(
+										_elm_lang$html$Html$button,
+										_elm_lang$core$Native_List.fromArray(
+											[
+												_elm_lang$html$Html_Attributes$class('btn btn-default'),
+												_elm_lang$html$Html_Attributes$disabled(
+												_blake_education$lettersmash$Views$hideClear(model.candidate)),
+												_elm_lang$html$Html_Events$onClick(_blake_education$lettersmash$Actions$Backspace)
+											]),
+										_elm_lang$core$Native_List.fromArray(
+											[
+												_elm_lang$html$Html$text('<-')
+											])),
+										A2(
+										_elm_lang$html$Html$button,
+										_elm_lang$core$Native_List.fromArray(
+											[
+												_elm_lang$html$Html_Attributes$class('btn btn-primary'),
+												_elm_lang$html$Html_Attributes$disabled(
+												_blake_education$lettersmash$Views$hideSubmit(model.candidate)),
+												_elm_lang$html$Html_Events$onClick(_blake_education$lettersmash$Actions$Submit)
+											]),
+										_elm_lang$core$Native_List.fromArray(
+											[
+												_elm_lang$html$Html$text('Submit')
+											]))
+									]))
+							]))
+					]))
+			]));
 };
 var _blake_education$lettersmash$Views$colors = _elm_lang$core$Native_List.fromArray(
 	['LightGrey', '#ef476f', '#ffd166', '#06d6a0', '#118ab2', '#773b9c', '#247ba0', '#70c1b3', '#b2dbbf', '#f3ffbd', '#ff1654']);
@@ -8565,22 +8642,30 @@ var _blake_education$lettersmash$Views$view = function (model) {
 					]),
 				_elm_lang$core$Native_List.fromArray(
 					[
-						_blake_education$lettersmash$Views$flash(model),
+						_blake_education$lettersmash$Views$flash(model)
+					])),
+				A2(
+				_elm_lang$html$Html$div,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$classList(
+						_elm_lang$core$Native_List.fromArray(
+							[
+								{ctor: '_Tuple2', _0: 'row game-over', _1: true},
+								{
+								ctor: '_Tuple2',
+								_0: 'hidden',
+								_1: _elm_lang$core$Basics$not(model.boardState.game_over)
+							}
+							]))
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
 						A2(
 						_elm_lang$html$Html$div,
 						_elm_lang$core$Native_List.fromArray(
 							[
-								_elm_lang$html$Html_Attributes$classList(
-								_elm_lang$core$Native_List.fromArray(
-									[
-										{ctor: '_Tuple2', _0: 'col-md-12', _1: true},
-										{ctor: '_Tuple2', _0: 'game-over', _1: true},
-										{
-										ctor: '_Tuple2',
-										_0: 'hidden',
-										_1: _elm_lang$core$Basics$not(model.boardState.game_over)
-									}
-									]))
+								_elm_lang$html$Html_Attributes$class('col-md-4')
 							]),
 						_elm_lang$core$Native_List.fromArray(
 							[
@@ -8597,12 +8682,24 @@ var _blake_education$lettersmash$Views$view = function (model) {
 						_elm_lang$html$Html$div,
 						_elm_lang$core$Native_List.fromArray(
 							[
-								_elm_lang$html$Html_Attributes$class('board col-md-12')
+								_elm_lang$html$Html_Attributes$class('col-md-4')
 							]),
-						A2(
-							_elm_lang$core$List$map,
-							_blake_education$lettersmash$Views$boardRow(model.candidate),
-							model.boardState.board))
+						_elm_lang$core$Native_List.fromArray(
+							[
+								A2(
+								_elm_lang$html$Html$button,
+								_elm_lang$core$Native_List.fromArray(
+									[
+										_elm_lang$html$Html_Attributes$class('btn btn'),
+										_elm_lang$html$Html_Attributes$disabled(
+										_elm_lang$core$Basics$not(model.boardState.game_over)),
+										_elm_lang$html$Html_Events$onClick(_blake_education$lettersmash$Actions$RequestNewGame)
+									]),
+								_elm_lang$core$Native_List.fromArray(
+									[
+										_elm_lang$html$Html$text('New Game')
+									]))
+							]))
 					])),
 				A2(
 				_elm_lang$html$Html$div,
@@ -8616,82 +8713,14 @@ var _blake_education$lettersmash$Views$view = function (model) {
 						_elm_lang$html$Html$div,
 						_elm_lang$core$Native_List.fromArray(
 							[
-								_elm_lang$html$Html_Attributes$class('col-md-12')
+								_elm_lang$html$Html_Attributes$class('board col-md-12')
 							]),
-						_elm_lang$core$Native_List.fromArray(
-							[
-								A2(
-								_elm_lang$html$Html$div,
-								_elm_lang$core$Native_List.fromArray(
-									[
-										_elm_lang$html$Html_Attributes$class('form')
-									]),
-								_elm_lang$core$Native_List.fromArray(
-									[
-										A2(
-										_elm_lang$html$Html$div,
-										_elm_lang$core$Native_List.fromArray(
-											[
-												_elm_lang$html$Html_Attributes$class('btn-group')
-											]),
-										_elm_lang$core$Native_List.fromArray(
-											[
-												A2(
-												_elm_lang$html$Html$button,
-												_elm_lang$core$Native_List.fromArray(
-													[
-														_elm_lang$html$Html_Attributes$class('btn btn-default'),
-														_elm_lang$html$Html_Attributes$disabled(
-														_blake_education$lettersmash$Views$hideClear(model.candidate)),
-														_elm_lang$html$Html_Events$onClick(_blake_education$lettersmash$Actions$Clear)
-													]),
-												_elm_lang$core$Native_List.fromArray(
-													[
-														_elm_lang$html$Html$text('Clear')
-													])),
-												A2(
-												_elm_lang$html$Html$button,
-												_elm_lang$core$Native_List.fromArray(
-													[
-														_elm_lang$html$Html_Attributes$class('btn btn-default'),
-														_elm_lang$html$Html_Attributes$disabled(
-														_blake_education$lettersmash$Views$hideClear(model.candidate)),
-														_elm_lang$html$Html_Events$onClick(_blake_education$lettersmash$Actions$Backspace)
-													]),
-												_elm_lang$core$Native_List.fromArray(
-													[
-														_elm_lang$html$Html$text('<-')
-													])),
-												A2(
-												_elm_lang$html$Html$button,
-												_elm_lang$core$Native_List.fromArray(
-													[
-														_elm_lang$html$Html_Attributes$class('btn btn-primary'),
-														_elm_lang$html$Html_Attributes$disabled(
-														_blake_education$lettersmash$Views$hideSubmit(model.candidate)),
-														_elm_lang$html$Html_Events$onClick(_blake_education$lettersmash$Actions$Submit)
-													]),
-												_elm_lang$core$Native_List.fromArray(
-													[
-														_elm_lang$html$Html$text('Submit')
-													])),
-												A2(
-												_elm_lang$html$Html$button,
-												_elm_lang$core$Native_List.fromArray(
-													[
-														_elm_lang$html$Html_Attributes$class('btn btn'),
-														_elm_lang$html$Html_Attributes$disabled(
-														_elm_lang$core$Basics$not(model.boardState.game_over)),
-														_elm_lang$html$Html_Events$onClick(_blake_education$lettersmash$Actions$RequestNewGame)
-													]),
-												_elm_lang$core$Native_List.fromArray(
-													[
-														_elm_lang$html$Html$text('New Game')
-													]))
-											]))
-									]))
-							]))
+						A2(
+							_elm_lang$core$List$map,
+							_blake_education$lettersmash$Views$boardRow(model.candidate),
+							model.boardState.board))
 					])),
+				_blake_education$lettersmash$Views$buttons(model),
 				A2(
 				_elm_lang$html$Html$div,
 				_elm_lang$core$Native_List.fromArray(

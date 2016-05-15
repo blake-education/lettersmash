@@ -33,43 +33,30 @@ view model =
     [ class "outer"]
     [ div
       [ class "row" ]
-      [ flash model
-      , div
-        [ classList [
-            ("col-md-12", True),
-            ("game-over", True),
-            ("hidden", not model.boardState.game_over)
-          ]
+      [ flash model ]
+    , div
+      [ classList
+        [ ("row game-over", True)
+        , ("hidden", not model.boardState.game_over)
         ]
-        [ h2 [] [text "Game Over"]]
-      , div
-        [ class "board col-md-12" ]
-        (List.map (boardRow model.candidate) model.boardState.board)
       ]
+      [ div
+        [ class "col-md-4" ]
+        [ h2 [] [text "Game Over"] ]
+      , div
+        [ class "col-md-4" ]
+        [ button
+          [ class "btn btn", disabled (not model.boardState.game_over), Events.onClick RequestNewGame ]
+          [ text "New Game" ]
+        ]
+    ]
     , div
       [ class "row" ]
       [ div
-        [ class "col-md-12"]
-        [ div
-          [ class "form"]
-          [ div
-            [ class "btn-group"]
-            [ button
-                [ class "btn btn-default", disabled (hideClear model.candidate), Events.onClick Clear ]
-                [ text "Clear" ]
-            , button
-                [ class "btn btn-default", disabled (hideClear model.candidate), Events.onClick Backspace ]
-                [ text "<-" ]
-            , button
-                [ class "btn btn-primary", disabled (hideSubmit model.candidate), Events.onClick Submit ]
-                [ text "Submit" ]
-            , button
-                [ class "btn btn", disabled (not model.boardState.game_over), Events.onClick RequestNewGame ]
-                [ text "New Game" ]
-            ]
-          ]
-        ]
+        [ class "board col-md-12" ]
+        (List.map (boardRow model.candidate) model.boardState.board)
       ]
+    , buttons model
     , div
       [ class "row" ]
       [ div
@@ -90,6 +77,29 @@ view model =
       ]
     ]
 
+buttons: Model -> Html Msg
+buttons model =
+ div
+  [ class "row" ]
+  [ div
+    [ class "col-md-12"]
+    [ div
+      [ class "form"]
+      [ div
+        [ class "btn-group"]
+        [ button
+            [ class "btn btn-default", disabled (hideClear model.candidate), Events.onClick Clear ]
+            [ text "Clear" ]
+        , button
+            [ class "btn btn-default", disabled (hideClear model.candidate), Events.onClick Backspace ]
+            [ text "<-" ]
+        , button
+            [ class "btn btn-primary", disabled (hideSubmit model.candidate), Events.onClick Submit ]
+            [ text "Submit" ]
+        ]
+      ]
+    ]
+  ]
 
 hideSubmit : Candidate -> Bool
 hideSubmit candidate =
@@ -159,7 +169,7 @@ flash model =
     span [] []
   else
     div
-      [ class "alert alert-warning"
+      [ class "col-md-12 alert alert-warning"
       ]
       [ text model.errorMessage ]
 
