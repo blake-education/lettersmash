@@ -3,7 +3,7 @@ defmodule Skateboard.Event do
 
   schema "events" do
     field :user_id, :integer
-    field :game_id, :integer
+    field :game_id, :string
     field :score, :integer
     field :winner, :boolean, default: false
 

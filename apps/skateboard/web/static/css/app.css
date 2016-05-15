@@ -116,3 +116,19 @@ form.link, form.button {
 .board {
   cursor: pointer;
 }
+
+.player {
+  border: 2px solid grey;
+  padding: 3px;
+}
+
+.player .name {
+  font-size: 110%;
+  font-weight: 600;
+}
+
+.player .total {
+  margin: 0 5px 0 0;
+  font-size: 80%;
+  font-weight: 600;
+}
