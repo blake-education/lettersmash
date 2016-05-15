@@ -3,6 +3,7 @@ defmodule Skateboard.UserSocket do
 
   ## Channels
   channel "game:*", Skateboard.GameChannel
+  channel "lobby", Skateboard.LobbyChannel
 
   ## Transports
   transport :websocket, Phoenix.Transports.WebSocket,
