@@ -3716,9 +3716,9 @@ var _blake_education$lettersmash$Models$Letter = F4(
 	function (a, b, c, d) {
 		return {letter: a, id: b, owner: c, surrounded: d};
 	});
-var _blake_education$lettersmash$Models$Player = F3(
-	function (a, b, c) {
-		return {name: a, index: b, score: c};
+var _blake_education$lettersmash$Models$Player = F6(
+	function (a, b, c, d, e, f) {
+		return {name: a, index: b, score: c, total_score: d, games_played: e, games_won: f};
 	});
 var _blake_education$lettersmash$Models$Word = F2(
 	function (a, b) {
@@ -8446,19 +8446,22 @@ var _blake_education$lettersmash$Views$backgroundStyle = function (index) {
 			}
 			]));
 };
-var _blake_education$lettersmash$Views$playerView = function (player) {
+var _blake_education$lettersmash$Views$playerBadge = function (player) {
 	return A2(
 		_elm_lang$html$Html$div,
 		_elm_lang$core$Native_List.fromArray(
 			[
+				_elm_lang$html$Html_Attributes$class('player'),
 				_blake_education$lettersmash$Views$backgroundStyle(player.index)
 			]),
 		_elm_lang$core$Native_List.fromArray(
 			[
 				A2(
-				_elm_lang$html$Html$h4,
+				_elm_lang$html$Html$div,
 				_elm_lang$core$Native_List.fromArray(
-					[]),
+					[
+						_elm_lang$html$Html_Attributes$class('name')
+					]),
 				_elm_lang$core$Native_List.fromArray(
 					[
 						_elm_lang$html$Html$text(
@@ -8469,7 +8472,59 @@ var _blake_education$lettersmash$Views$playerView = function (player) {
 								_elm_lang$core$Basics_ops['++'],
 								' ',
 								_elm_lang$core$Basics$toString(player.score))))
+					])),
+				A2(
+				_elm_lang$html$Html$span,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$class('total')
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text(
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							'Points: ',
+							_elm_lang$core$Basics$toString(player.total_score)))
+					])),
+				A2(
+				_elm_lang$html$Html$span,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$class('total')
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text(
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							'Won: ',
+							_elm_lang$core$Basics$toString(player.games_won)))
+					])),
+				A2(
+				_elm_lang$html$Html$span,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$class('total')
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text(
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							'Played: ',
+							_elm_lang$core$Basics$toString(player.games_played)))
 					]))
+			]));
+};
+var _blake_education$lettersmash$Views$playerView = function (player) {
+	return A2(
+		_elm_lang$html$Html$div,
+		_elm_lang$core$Native_List.fromArray(
+			[]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_blake_education$lettersmash$Views$playerBadge(player)
 			]));
 };
 var _blake_education$lettersmash$Views$wordlistView = function (word) {
@@ -8937,8 +8992,23 @@ var _blake_education$lettersmash$GameBoard$boardState = _elm_lang$core$Native_Pl
 											_elm_lang$core$Json_Decode$andThen,
 											A2(_elm_lang$core$Json_Decode_ops[':='], 'score', _elm_lang$core$Json_Decode$int),
 											function (score) {
-												return _elm_lang$core$Json_Decode$succeed(
-													{name: name, index: index, score: score});
+												return A2(
+													_elm_lang$core$Json_Decode$andThen,
+													A2(_elm_lang$core$Json_Decode_ops[':='], 'total_score', _elm_lang$core$Json_Decode$int),
+													function (total_score) {
+														return A2(
+															_elm_lang$core$Json_Decode$andThen,
+															A2(_elm_lang$core$Json_Decode_ops[':='], 'games_played', _elm_lang$core$Json_Decode$int),
+															function (games_played) {
+																return A2(
+																	_elm_lang$core$Json_Decode$andThen,
+																	A2(_elm_lang$core$Json_Decode_ops[':='], 'games_won', _elm_lang$core$Json_Decode$int),
+																	function (games_won) {
+																		return _elm_lang$core$Json_Decode$succeed(
+																			{name: name, index: index, score: score, total_score: total_score, games_played: games_played, games_won: games_won});
+																	});
+															});
+													});
 											});
 									});
 							}))),
