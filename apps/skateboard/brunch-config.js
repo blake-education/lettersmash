@@ -56,7 +56,7 @@ exports.config = {
     },
     elmBrunch: {
       elmFolder: "web/elm",
-      mainModules: ["GameBoard.elm"],
+      mainModules: ["GameBoard.elm", "GameLobby.elm"],
       outputFolder: "../static/vendor"
     }
   },
