@@ -109,9 +109,26 @@ hideClear candidate =
 playerView : Player -> Html msg
 playerView player =
   div
-    [ backgroundStyle player.index ]
-    [ h4 [] [ text (player.name ++ " " ++ toString (player.score)) ] ]
+    [ ]
+    [ playerBadge player]
 
+playerBadge : Player -> Html msg
+playerBadge player =
+  div
+    [class "player", backgroundStyle player.index]
+    [ div
+      [class "name"]
+      [text (player.name ++ " " ++ toString (player.score))]
+    , span
+      [class "total"]
+      [text ("Points: " ++ toString (player.total_score))]
+    , span
+      [class "total"]
+      [text ("Won: " ++ toString (player.games_won))]
+    , span
+      [class "total"]
+      [text ("Played: " ++ toString (player.games_played))]
+    ]
 
 wordlistView : Word -> Html msg
 wordlistView word  =

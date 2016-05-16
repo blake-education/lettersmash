@@ -27,7 +27,7 @@ defmodule Library.LetterGenerator do
       "N", "N", "N", "N", "N", "N", "N", "N",
       "O", "O", "O", "O", "O", "O", "O", "O", "O",
       "P", "P", "P",
-      "Q",
+      #"Q",
       "R", "R", "R", "R", "R", "R", "R",
       "S", "S", "S", "S", "S", "S", "S",
       "T", "T", "T", "T", "T", "T", "T", "T", "T", "T",

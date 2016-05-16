@@ -2,6 +2,7 @@ defmodule Library.Game do
   use GenServer
   alias Library.Board
   alias Library.Dictionary
+  alias Library.Player
 
   @generator Library.LetterGenerator
 
@@ -40,6 +41,14 @@ defmodule Library.Game do
     GenServer.cast(pid, {:remove_player, player})
   end
 
+  def finished?(pid) do
+    GenServer.call(pid, :finished?)
+  end
+
+  def players(pid) do
+    GenServer.call(pid, :players)
+  end
+
   def display_state(pid), do: GenServer.call(pid, :display_state)
   def list_state(pid), do: GenServer.call(pid, :list_state)
 
@@ -47,6 +56,7 @@ defmodule Library.Game do
     {
       :ok,
       %{
+        game_id: Ecto.UUID.generate,
         board: Board.generate,
         players: [],
         wordlist: [],
@@ -57,15 +67,6 @@ defmodule Library.Game do
   end
 
   def handle_call({:submit_word, word, player_id}, _from, game_state) do
-    # this will delegate out to the dictionary to see if this is a valid word
-    #
-    # Would love to use this type of system.
-    #
-    # with {:ok} <- words_consist_of_valid_letters?(word),
-    #      {:ok} <- have_not_played_word?(player, word),
-    # do:  {:reply, {:ok, word}, game_state}
-    # else {:reply, {:error, "word not valid", game_state}}
-
     cond do
       word_used_previously(game_state.wordlist, word) ->
         {:reply, {:error, "Word already played"}, game_state}
@@ -75,13 +76,13 @@ defmodule Library.Game do
         {:reply, {:error, "Game Over"}, game_state}
       true ->
         player = find_player(String.to_integer(player_id), game_state.players)
-        new_board = update_board(word, player.index, game_state.board)
+        new_board = update_board(word, player, game_state.board)
         new_state =
           %{
             game_state |
               board: new_board,
-              players: update_scores(new_board, game_state.players),
-              wordlist:  update_wordlist(word, game_state.wordlist, player.index),
+              players: update_players(game_state.players, new_board, game_state.game_id),
+              wordlist: update_wordlist(word, game_state.wordlist, player.index),
               game_over: Board.completed?(new_board)
           }
         {:reply, :ok, new_state}
@@ -90,6 +91,14 @@ defmodule Library.Game do
 
   def handle_call(:list_state, _from, game_state) do
     {:reply, game_state, game_state}
+  end
+
+  def handle_call(:finished?, _from, game_state) do
+    {:reply, game_state.game_over, game_state}
+  end
+
+  def handle_call(:players, _from, game_state) do
+    {:reply, game_state.players, game_state}
   end
 
   def handle_call(:display_state, _from, game_state) do
@@ -104,7 +113,8 @@ defmodule Library.Game do
     if find_player(player.id, game_state.players) do
       { :noreply, game_state }
     else
-      new_player = Map.put_new(player, :index, game_state.next_index)
+      new_player = %Player{id: player.id, name: player.name, index: game_state.next_index}
+      new_player = Player.hydrate(new_player)
       {
         :noreply,
         %{
@@ -128,6 +138,7 @@ defmodule Library.Game do
       :noreply,
       %{
         game_state |
+          game_id: Ecto.UUID.generate,
           board: Board.generate,
           players: clear_scores(game_state.players),
           wordlist: [],
@@ -140,17 +151,9 @@ defmodule Library.Game do
     Enum.reject(all_players, &(&1.id == player.id))
   end
 
-  defp update_scores(board, players) do
-    players
-    |> Enum.map(fn(player) ->
-      %{player | score: Board.letter_count(board, player.index) }
-    end)
-    |> Enum.sort(&(&1.score > &2.score))
-  end
-
-  defp update_board(word, player_index, board) do
+  defp update_board(word, player, board) do
     word
-    |> Board.add_word(player_index, board)
+    |> Board.add_word(player.index, board)
     |> Board.surrounded
   end
 
@@ -167,7 +170,7 @@ defmodule Library.Game do
 
   defp find_player(id, players) do
     players
-    |> Enum.find(fn(player) -> player.id == id end)
+    |> Enum.find(&(&1.id == id))
   end
 
   defp word_used_previously(wordlist, letters) do
@@ -184,6 +187,28 @@ defmodule Library.Game do
   defp clear_scores(players) do
     players
     |> Enum.map(&Map.put(&1, :score, 0))
+  end
+
+  defp update_scores(players, board) do
+    players
+    |> Enum.map(fn(player) ->
+      %{player | score: Board.letter_count(board, player.index) }
+    end)
+    |> Enum.sort(&(&1.score > &2.score))
+  end
+
+  def save_events(players, game_id) do
+    players
+    |> Enum.map(&Player.save_event(&1, List.first(players), game_id))
+  end
+
+  def update_players(players, board, game_id) do
+    new_players = update_scores(players, board)
+    if Board.completed?(board) do
+      save_events(new_players, game_id)
+    else
+      new_players
+    end
   end
 
 end

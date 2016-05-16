@@ -1,23 +1,19 @@
 defmodule Skateboard.GameChannel do
   use Phoenix.Channel
+  alias Skateboard.Repo
   alias Skateboard.User
   alias Library.Game
 
   def join("game:new", _message, socket) do
     id = socket.assigns.user_id
-    user = Skateboard.Repo.get(User, id)
+    user = Repo.get(User, id)
 
     game = :current_game
-    user_map = %{id: user.id, name: user.name, score: 0}
+    user_map = %{id: user.id, name: user.name}
     Game.add_player(game, user_map)
     send(self, :after_join)
 
     {:ok, assign(socket, :game, game)}
-  end
-
-  def handle_info(:after_join, socket) do
-    broadcast!(socket, "board_state", Game.display_state(socket.assigns.game))
-    {:noreply, socket}
   end
 
   def handle_in("board_state", payload, socket) do
@@ -44,6 +40,11 @@ defmodule Skateboard.GameChannel do
     Game.new_game(game)
     broadcast!(socket, "board_state", Game.display_state(game))
     {:reply, {:ok, payload}, socket}
+  end
+
+  def handle_info(:after_join, socket) do
+    broadcast!(socket, "board_state", Game.display_state(socket.assigns.game))
+    {:noreply, socket}
   end
 
   def handle_info(_, socket) do
