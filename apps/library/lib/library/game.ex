@@ -41,8 +41,8 @@ defmodule Library.Game do
     GenServer.cast(pid, {:remove_player, player})
   end
 
-  def finished(pid) do
-    GenServer.call(pid, :finished)
+  def finished?(pid) do
+    GenServer.call(pid, :finished?)
   end
 
   def players(pid) do
@@ -93,7 +93,7 @@ defmodule Library.Game do
     {:reply, game_state, game_state}
   end
 
-  def handle_call(:finished, _from, game_state) do
+  def handle_call(:finished?, _from, game_state) do
     {:reply, game_state.game_over, game_state}
   end
 
