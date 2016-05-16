@@ -8,12 +8,12 @@ defmodule Library.Player do
   defstruct name: "", score: 0, id: nil, index: nil, total_score: 0, games_played: 0, games_won: 0
 
   def save_event(player, winner, game_id) do
-    Repo.insert(%Skateboard.Event{
-      user_id: player.id,
-      game_id: game_id,
-      score: player.score,
-      winner: player.id == winner.id
-    })
+    #Repo.insert(%Skateboard.Event{
+      #user_id: player.id,
+      #game_id: game_id,
+      #score: player.score,
+      #winner: player.id == winner.id
+    #})
     hydrate(player)
   end
 
