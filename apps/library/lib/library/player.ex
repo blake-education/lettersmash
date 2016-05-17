@@ -1,4 +1,10 @@
 defmodule Library.Player do
+
+  @moduledoc """
+  The Player module represents a player in the game and a summary of
+  their history sourced from the events table
+  """
+
   alias Skateboard.Repo
   alias Skateboard.Event
   alias Library.Player

@@ -9,7 +9,7 @@ defmodule Library.DictionaryTest do
 
   test "proper nouns are downcased" do
     word = "Owen"
-    assert Dictionary.check_word(word) == {:valid, String.downcase(word)}
+    assert Dictionary.check_word(word) == {:invalid, String.downcase(word)}
   end
 
   test "word is invalid" do
