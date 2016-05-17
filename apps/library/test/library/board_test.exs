@@ -19,12 +19,12 @@ defmodule Library.BoardTest do
 
   test "players don't own any letters initially" do
     board = Board.generate
-    assert Board.letter_count(board, 1) == 0 
+    assert Board.letter_count(board, 0) == 25
   end
 
   test "adding a word replaces the owner of each letter" do
     word = [%{id: 2, owner: 1}, %{id: 4, owner: 1}]
-    updated_board = Board.add_word(Board.generate, word, "1")
+    updated_board = Board.add_word(word, 1, Board.generate)
     assert Board.letter_count(updated_board, 1) == 2
   end
 

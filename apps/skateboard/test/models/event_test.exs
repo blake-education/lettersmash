@@ -3,7 +3,7 @@ defmodule Skateboard.EventTest do
 
   alias Skateboard.Event
 
-  @valid_attrs %{game_id: 42, score: 42, user_id: 42, winner: true}
+  @valid_attrs %{game_id: "some-uuid", score: 42, user_id: 42, winner: true}
   @invalid_attrs %{}
 
   test "changeset with valid attributes" do

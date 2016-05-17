@@ -41,14 +41,6 @@ defmodule Library.Game do
     GenServer.cast(pid, {:remove_player, player})
   end
 
-  def finished?(pid) do
-    GenServer.call(pid, :finished?)
-  end
-
-  def players(pid) do
-    GenServer.call(pid, :players)
-  end
-
   def display_state(pid), do: GenServer.call(pid, :display_state)
   def list_state(pid), do: GenServer.call(pid, :list_state)
 
@@ -93,14 +85,6 @@ defmodule Library.Game do
     {:reply, game_state, game_state}
   end
 
-  def handle_call(:finished?, _from, game_state) do
-    {:reply, game_state.game_over, game_state}
-  end
-
-  def handle_call(:players, _from, game_state) do
-    {:reply, game_state.players, game_state}
-  end
-
   def handle_call(:display_state, _from, game_state) do
     board = game_state.board
     |> Board.surrounded
@@ -111,7 +95,7 @@ defmodule Library.Game do
 
   def handle_cast({:add_player, player}, game_state) do
     if find_player(player.id, game_state.players) do
-      { :noreply, game_state }
+      {:noreply, game_state}
     else
       new_player = %Player{id: player.id, name: player.name, index: game_state.next_index}
       new_player = Player.hydrate(new_player)
@@ -192,7 +176,7 @@ defmodule Library.Game do
   defp update_scores(players, board) do
     players
     |> Enum.map(fn(player) ->
-      %{player | score: Board.letter_count(board, player.index) }
+      %{player | score: Board.letter_count(board, player.index)}
     end)
     |> Enum.sort(&(&1.score > &2.score))
   end
