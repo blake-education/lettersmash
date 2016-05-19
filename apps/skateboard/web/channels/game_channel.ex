@@ -14,7 +14,7 @@ defmodule Skateboard.GameChannel do
     user = Repo.get(User, id)
     user_map = %{id: user.id, name: user.name}
     Game.add_player(game, user_map)
-    send(self, :after_join)
+    #send(self, :after_join)
     IO.inspect socket.assigns
 
     {:ok, socket}
@@ -23,7 +23,7 @@ defmodule Skateboard.GameChannel do
   def handle_in("board_state", payload, socket) do
 
     game = socket.assigns.game
-    {:ok, state} = Game.display_state(socket.assigns.game)
+    state = Game.display_state(socket.assigns.game)
     push(socket, "board_state", state)
 
     {:reply, {:ok, payload}, socket}
@@ -55,7 +55,7 @@ defmodule Skateboard.GameChannel do
 
   defp broadcast_state(socket) do
     game = find_or_create_game(socket.assigns.game_name)
-    {:ok, state} = Game.display_state(game)
+    state = Game.display_state(game)
     broadcast!(socket, "board_state", state)
   end
 

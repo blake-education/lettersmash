@@ -74,14 +74,13 @@ defmodule Library.Game do
         {:reply, {:error, "Game Over"}, game_state}
       true ->
         player = find_player(String.to_integer(player_id), game_state.players)
-        new_board = update_board(game_state.board, word, player)
+        Board.add_word(game_state.board, word, player)
         new_state =
           %{
             game_state |
-              board: new_board,
-              players: update_players(game_state.players, new_board, game_state.game_id),
+              players: update_players(game_state.players, game_state.board, game_state.game_id),
               wordlist: update_wordlist(word, game_state.wordlist, player.index),
-              game_over: board_completed(new_board)
+              game_over: Board.completed?(game_state.board)
           }
         {:reply, :ok, new_state}
     end
@@ -92,12 +91,8 @@ defmodule Library.Game do
   end
 
   def handle_call(:display_state, _from, game_state) do
-    IO.puts ":display_state"
-    IO.inspect game_state
-    IO.inspect game_state.board
-    {:ok, letters} = Board.letters(game_state.board)
+    letters = Board.letters(game_state.board)
     display_state = Map.put game_state, :board, Enum.chunk(letters, 5)
-    IO.inspect display_state
     {:reply, display_state, game_state}
   end
 
@@ -147,16 +142,6 @@ defmodule Library.Game do
     Enum.reject(all_players, &(&1.id == player.id))
   end
 
-  defp update_board(board, word, player) do
-    {:ok, board} = Board.add_word(board, word, player.index)
-    board
-  end
-
-  defp board_completed(board) do
-    {:ok, completed} = Board.completed?(board)
-    completed
-  end
-
   defp update_wordlist(word, wordlist, player_index) do
     List.insert_at(wordlist, 0, %{word: word_string(word), played_by: player_index})
   end
@@ -192,7 +177,7 @@ defmodule Library.Game do
   defp update_scores(players, board) do
     players
     |> Enum.map(fn(player) ->
-      %{player | score: Board.letter_count(board, player.index)}
+      %{player | score: Board.letters_owned(board, player.index)}
     end)
     |> Enum.sort(&(&1.score > &2.score))
   end
