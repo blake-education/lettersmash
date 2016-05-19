@@ -12,7 +12,7 @@ defmodule Library.LetterTest do
   end
 
   test "in a new board no letters are surrounded" do
-    board = Board.generate
+    board = Board.start_link(5, 5)
     Enum.map(board, fn(letter) ->
       assert Letter.surrounded(letter, board, 5, 5) == false
     end)

@@ -27,7 +27,7 @@ const elmApp = Elm.GameBoard.embed(elmDiv);
 //elmApp.ports.boardState.send(initialState.boardState);
 
 // CHANNELS
-let channel = socket.channel("game:new", {})
+let channel = socket.channel("game:game1", {})
 channel.join()
   .receive("ok", resp => {
     console.log("Joined successfully", resp);

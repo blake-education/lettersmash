@@ -1,10 +1,6 @@
 defmodule Library.Game do
   use GenServer
-  alias Library.Board
-  alias Library.Dictionary
-  alias Library.Player
-
-  @generator Library.LetterGenerator
+  alias Library.{Board,Dictionary,Player}
 
   @moduledoc """
 
@@ -23,7 +19,9 @@ defmodule Library.Game do
     %{board: [], players: [%{id: 1, name: "abc"}]}
   """
 
-  def start_link, do: GenServer.start_link(__MODULE__, :ok, name: :current_game)
+  def start_link(name) do
+    GenServer.start_link(__MODULE__, :ok, name: :"#{name}")
+  end
 
   def submit_word(pid, word, player) do
     GenServer.call(pid, {:submit_word, word, player})
@@ -41,15 +39,22 @@ defmodule Library.Game do
     GenServer.cast(pid, {:remove_player, player})
   end
 
+  def name(pid) do
+    GenServer.call(pid, :name)
+  end
+
   def display_state(pid), do: GenServer.call(pid, :display_state)
   def list_state(pid), do: GenServer.call(pid, :list_state)
 
   def init(:ok) do
+    {:ok, board} = Board.start_link(5, 5)
+    IO.puts "init"
+    IO.inspect board
     {
       :ok,
       %{
         game_id: Ecto.UUID.generate,
-        board: Board.generate,
+        board: board,
         players: [],
         wordlist: [],
         game_over: false,
@@ -68,14 +73,14 @@ defmodule Library.Game do
         {:reply, {:error, "Game Over"}, game_state}
       true ->
         player = find_player(String.to_integer(player_id), game_state.players)
-        new_board = update_board(word, player, game_state.board)
+        new_board = update_board(game_state.board, word, player)
         new_state =
           %{
             game_state |
               board: new_board,
               players: update_players(game_state.players, new_board, game_state.game_id),
               wordlist: update_wordlist(word, game_state.wordlist, player.index),
-              game_over: Board.completed?(new_board)
+              game_over: board_completed(new_board)
           }
         {:reply, :ok, new_state}
     end
@@ -86,11 +91,13 @@ defmodule Library.Game do
   end
 
   def handle_call(:display_state, _from, game_state) do
-    board = game_state.board
-    |> Board.surrounded
-    |> Enum.chunk(5)
-    display_board = Map.put game_state, :board, board
-    {:reply, display_board, game_state}
+    IO.puts ":display_state"
+    IO.inspect game_state
+    IO.inspect game_state.board
+    {:ok, letters} = Board.letters(game_state.board)
+    display_state = Map.put game_state, :board, Enum.chunk(letters, 5)
+    IO.inspect display_state
+    {:reply, display_state, game_state}
   end
 
   def handle_cast({:add_player, player}, game_state) do
@@ -123,7 +130,7 @@ defmodule Library.Game do
       %{
         game_state |
           game_id: Ecto.UUID.generate,
-          board: Board.generate,
+          board: Board.new_board(game_state.board),
           players: clear_scores(game_state.players),
           wordlist: [],
           game_over: false
@@ -131,14 +138,22 @@ defmodule Library.Game do
     }
   end
 
+  def handle_call(:name, _from, state) do
+    {:reply, state[:name], state}
+  end
+
   defp remove_player_from_state(all_players, player) do
     Enum.reject(all_players, &(&1.id == player.id))
   end
 
-  defp update_board(word, player, board) do
-    word
-    |> Board.add_word(player.index, board)
-    |> Board.surrounded
+  defp update_board(board, word, player) do
+    {:ok, board} = Board.add_word(board, word, player.index)
+    board
+  end
+
+  defp board_completed(board) do
+    {:ok, completed} = Board.completed?(board)
+    completed
   end
 
   defp update_wordlist(word, wordlist, player_index) do
