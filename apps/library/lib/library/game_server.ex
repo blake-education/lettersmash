@@ -16,7 +16,9 @@ defmodule Library.GameServer do
   end
 
   def find_game(name) do
+    IO.inspect games
     Enum.find games, fn(child) ->
+      IO.puts "#{Game.name(child)} == #{name}"
       Game.name(child) == name
     end
   end

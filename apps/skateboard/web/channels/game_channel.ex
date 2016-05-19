@@ -54,7 +54,8 @@ defmodule Skateboard.GameChannel do
   end
 
   defp broadcast_state(socket) do
-    {:ok, state} = Game.display_state(socket.assigns.game)
+    game = find_or_create_game(socket.assigns.game_name)
+    {:ok, state} = Game.display_state(game)
     broadcast!(socket, "board_state", state)
   end
 

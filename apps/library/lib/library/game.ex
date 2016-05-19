@@ -20,7 +20,7 @@ defmodule Library.Game do
   """
 
   def start_link(name) do
-    GenServer.start_link(__MODULE__, :ok, name: :"#{name}")
+    GenServer.start_link(__MODULE__, name, name: :"#{name}")
   end
 
   def submit_word(pid, word, player) do
@@ -46,7 +46,7 @@ defmodule Library.Game do
   def display_state(pid), do: GenServer.call(pid, :display_state)
   def list_state(pid), do: GenServer.call(pid, :list_state)
 
-  def init(:ok) do
+  def init(name) do
     {:ok, board} = Board.start_link(5, 5)
     IO.puts "init"
     IO.inspect board
@@ -54,6 +54,7 @@ defmodule Library.Game do
       :ok,
       %{
         game_id: Ecto.UUID.generate,
+        name: name,
         board: board,
         players: [],
         wordlist: [],
