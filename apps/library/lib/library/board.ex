@@ -48,9 +48,11 @@ defmodule Library.Board do
 
   def init({width, height}) do
     {:ok,
-      letters: generate(width * height),
-      width: width,
-      height: height
+      %{
+        letters: generate(width * height),
+        width: width,
+        height: height
+      }
     }
   end
 
@@ -60,21 +62,21 @@ defmodule Library.Board do
         state |
           letters: Enum.chunk(state.letters, 5)
       }
-    {:ok, new_state, state}
+    {:reply, new_state, state}
   end
 
   def handle_call(:letters, _from, state) do
-    {:ok, state.letters, state}
+    {:reply, state.letters, state}
   end
 
   def handle_call(:completed?, _from, state) do
     complete = Enum.all? state.letters, fn(letter) -> letter.owner != 0 end
-    {:ok, complete, state}
+    {:reply, complete, state}
   end
 
   def handle_call({:add_word, word, owner}, _from, state) do
     new_letters = word
-    |> Enum.reduce(state.letters, &(replace_letter(&2, &1, owner)))
+    |> Enum.reduce(state.letters, &(replace_letter(&2, &1, owner.index)))
     |> surrounded(state.width, state.height)
     new_state =
       %{
@@ -82,16 +84,16 @@ defmodule Library.Board do
           letters: new_letters
        }
     IO.inspect new_state
-    {:ok, new_state, new_state}
+    {:reply, new_state, new_state}
   end
 
   def handle_call({:letters_owned, owner}, _from, state) do
     count = Enum.count(state.letters, &(&1.owner == owner))
-    {:ok, count, state}
+    {:reply, count, state}
   end
 
   def handle_call(:get_state, _from, state) do
-    {:ok, state, state}
+    {:reply, state, state}
   end
 
   defp generate(count) do
