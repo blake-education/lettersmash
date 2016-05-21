@@ -83,7 +83,6 @@ defmodule Library.Board do
         state |
           letters: new_letters
        }
-    IO.inspect new_state
     {:reply, new_state, new_state}
   end
 
