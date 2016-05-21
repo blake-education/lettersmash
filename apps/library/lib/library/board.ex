@@ -17,10 +17,6 @@ defmodule Library.Board do
     GenServer.call(pid, :get_state)
   end
 
-  def by_row(pid) do
-    GenServer.call(pid, :by_row)
-  end
-
   def letters(pid) do
     GenServer.call(pid, :letters)
   end
@@ -54,15 +50,6 @@ defmodule Library.Board do
         height: height
       }
     }
-  end
-
-  def handle_call(:by_row, _from, state) do
-    new_state =
-      %{
-        state |
-          letters: Enum.chunk(state.letters, 5)
-      }
-    {:reply, new_state, state}
   end
 
   def handle_call(:letters, _from, state) do

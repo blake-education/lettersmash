@@ -5,6 +5,7 @@ defmodule Library.GameTest do
 
   setup do
     {:ok, game} = Game.start_link("game1")
+    Game.add_player(game, %{id: 1, name: "bob", index: "2"})
     {:ok, game: game}
   end
 
@@ -20,7 +21,7 @@ defmodule Library.GameTest do
   test "add_player - adds a player to the state map", %{game: game} do
 
     Library.Game.add_player(game, %{id: 1, name: "abc"})
-    assert %{board: _, players: players} = Library.Game.list_state(game)
+    assert %{board: _, players: players, wordlist: _, game_over: _} = Library.Game.list_state(game)
     assert length(players) == 1
   end
 
@@ -36,9 +37,8 @@ defmodule Library.GameTest do
 
   test "submit_word - with a valid word", %{game: game} do
 
-    word = [%{letter: "C", index: 1}, %{letter: "A", index: 2}, %{letter: "N", index: 3},%{letter: "E", index: 4}]
-    player = %{id: 1, name: "abc", index: 2}
+    word = [%{letter: "C", id: 1, owner: 0, surrounded: false}, %{letter: "A", id: 2, owner: 0, surrounded: false}, %{letter: "N", id: 3, owner: 0, surrounded: false},%{letter: "E", id: 4, owner: 0, surrounded: false}]
     
-    assert {:ok, word} = Library.Game.submit_word(game, word, player)
+    assert :ok = Library.Game.submit_word(game, word, "1")
   end
 end
