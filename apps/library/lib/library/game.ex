@@ -73,7 +73,7 @@ defmodule Library.Game do
         {:reply, {:error, "Game Over"}, state}
       true ->
         player = find_player(String.to_integer(player_id), state.players)
-        Board.add_word(state.board, word, player)
+        Board.add_word(state.board, word, player.index)
         Wordlist.add(state.wordlist, word, player)
         new_state =
           %{

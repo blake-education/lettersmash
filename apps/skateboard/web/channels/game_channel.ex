@@ -36,6 +36,7 @@ defmodule Skateboard.GameChannel do
 
   def handle_in("new_game", payload, socket) do
     game = find_or_create_game(socket.assigns.game_name)
+    Game.new_game(game)
     broadcast_state(socket)
     {:reply, {:ok, payload}, socket}
   end

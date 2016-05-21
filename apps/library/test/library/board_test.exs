@@ -21,7 +21,7 @@ defmodule Library.BoardTest do
   end
 
   test "adding a word replaces the owner of each letter", %{board: board} do
-    word = [%{id: 2, owner: 1}, %{id: 4, owner: 1}]
+    word = [%{id: 2, owner: 1, surrounded: false}, %{id: 4, owner: 1, surrounded: false}]
     Board.add_word(board, word, 1)
     assert Board.letters_owned(board, 1) == 2
   end
@@ -31,6 +31,13 @@ defmodule Library.BoardTest do
     |> Enum.map(fn(letter) ->
       assert Letter.surrounded(letter, board, 5, 5) == false
     end)
+  end
+
+  test "a new board can be generated", %{board: board} do
+    word = [%{id: 2, owner: 1, surrounded: false}, %{id: 4, owner: 1, surrounded: false}]
+    Board.add_word(board, word, 1)
+    Board.new_board(board)
+    assert Board.letters_owned(board, 0) == 25
   end
 
   #test "in a board completed by 1 player all letters are surrounded", %{board: board} do

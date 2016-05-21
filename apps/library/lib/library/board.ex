@@ -42,6 +42,13 @@ defmodule Library.Board do
     GenServer.call(pid, {:letters_owned, owner})
   end
 
+  @doc """
+  generates a new set of letters for the board
+  """
+  def new_board(pid) do
+    GenServer.call(pid, :new_board)
+  end
+
   def init({width, height}) do
     {:ok,
       %{
@@ -61,9 +68,9 @@ defmodule Library.Board do
     {:reply, complete, state}
   end
 
-  def handle_call({:add_word, word, owner}, _from, state) do
+  def handle_call({:add_word, word, index}, _from, state) do
     new_letters = word
-    |> Enum.reduce(state.letters, &(replace_letter(&2, &1, owner.index)))
+    |> Enum.reduce(state.letters, &(replace_letter(&2, &1, index)))
     |> surrounded(state.width, state.height)
     new_state =
       %{
@@ -80,6 +87,24 @@ defmodule Library.Board do
 
   def handle_call(:get_state, _from, state) do
     {:reply, state, state}
+  end
+
+  def handle_call(:new_board, _from, state) do
+    new_state =
+      %{
+        state |
+          letters: generate(state.width * state.height)
+       }
+    {:reply, new_state, new_state}
+  end
+
+  def handle_call(:add_row, _from, state) do
+    new_state =
+      %{
+        state |
+          letters: generate(state.width * state.height)
+       }
+    {:reply, new_state, new_state}
   end
 
   defp generate(count) do

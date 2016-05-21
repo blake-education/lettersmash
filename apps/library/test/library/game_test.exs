@@ -36,9 +36,7 @@ defmodule Library.GameTest do
   end
 
   test "submit_word - with a valid word", %{game: game} do
-
     word = [%{letter: "C", id: 1, owner: 0, surrounded: false}, %{letter: "A", id: 2, owner: 0, surrounded: false}, %{letter: "N", id: 3, owner: 0, surrounded: false},%{letter: "E", id: 4, owner: 0, surrounded: false}]
-    
     assert :ok = Library.Game.submit_word(game, word, "1")
   end
 end
