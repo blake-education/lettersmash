@@ -3,22 +3,13 @@ defmodule Library.DictionaryTest do
   alias Library.Dictionary
 
   test "word is valid" do
-    word = "hello"
-    assert Dictionary.check_word(word) == {:valid, word}
-  end
-
-  test "proper nouns are downcased" do
-    word = "Owen"
-    assert Dictionary.check_word(word) == {:invalid, String.downcase(word)}
+    word = [%{letter: "h"}, %{letter: "a"},%{letter: "t"}]
+    assert Dictionary.invalid?(word) == false
   end
 
   test "word is invalid" do
-    word = "sdoihfop"
-    assert Dictionary.check_word(word) == {:invalid, word}
+    word = [%{letter: "z"}, %{letter: "q"},%{letter: "j"}]
+    assert Dictionary.invalid?(word) == true
   end
 
-  test "word which contains numbers is invalid" do
-    word = "12345"
-    assert Dictionary.check_word(word) == {:invalid, word}
-  end
 end

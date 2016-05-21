@@ -5,8 +5,8 @@ defmodule Library.Dictionary do
     {:ok, dictionary} = GenServer.start(__MODULE__, state, opts)
   end
 
-  def check_word(word) do
-    GenServer.call(:dictionary, {:check_word, String.downcase(word)})
+  def invalid?(word) do
+    GenServer.call(:dictionary, {:invalid?, word})
   end
 
   ### Server callbacks
@@ -22,14 +22,10 @@ defmodule Library.Dictionary do
     |> String.split("\n")
   end
 
-  def handle_call({:check_word, word}, _from, dictionary) do
-    {:reply, validity(dictionary, word), dictionary}
+  def handle_call({:invalid?, word}, _from, dictionary) do
+    w = Enum.reduce(word, "", &(&2 <> &1.letter))
+    |> String.downcase
+    {:reply, !Enum.member?(dictionary, w), dictionary}
   end
 
-  defp validity(dictionary, word) do
-    cond do
-      Enum.member?(dictionary, word) -> {:valid, word}
-      true -> {:invalid, word}
-    end
-  end
 end
