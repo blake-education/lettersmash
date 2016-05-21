@@ -1,6 +1,6 @@
 defmodule Library.LetterTest do
   use ExUnit.Case
-  alias Library.{Board,Letter}
+  alias Library.Letter
 
   test "a letter with no owner is free" do
     assert Letter.free?(%{owner: 0}) == true

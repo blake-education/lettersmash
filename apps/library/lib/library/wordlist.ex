@@ -25,17 +25,17 @@ defmodule Library.Wordlist do
   end
 
   @doc """
-  add a word and player to the list
-  """
-  def add(pid, word, player) do
-    GenServer.cast(pid, {:add, word, player})
-  end
-
-  @doc """
   clears the list
   """
   def clear(pid) do
     GenServer.cast(pid, :clear)
+  end
+
+  @doc """
+  add a word and player to the list
+  """
+  def add(pid, word, player) do
+    GenServer.cast(pid, {:add, word, player})
   end
 
   def init(:ok) do
@@ -52,13 +52,13 @@ defmodule Library.Wordlist do
     {:reply, played, state}
   end
 
+  def handle_cast(:clear, state) do
+    {:noreply, []}
+  end
+
   def handle_cast({:add, word, player}, state) do
     w = Enum.reduce(word, "", &(&2 <> &1.letter))
     {:noreply, List.insert_at(state, 0, %{word: w, played_by: player.index})}
-  end
-
-  def handle_cast(:clear, state) do
-    {:noreply, []}
   end
 
 end

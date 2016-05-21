@@ -1,8 +1,12 @@
 defmodule Library.Dictionary do
+
+  @moduledoc """
+  contains functions for determining if a word is valid
+  """
   use GenServer
 
   def start_link(state, opts \\ []) do
-    {:ok, dictionary} = GenServer.start(__MODULE__, state, opts)
+    {:ok, _} = GenServer.start(__MODULE__, state, opts)
   end
 
   def invalid?(word) do

@@ -124,13 +124,13 @@ defmodule Library.Game do
   end
 
   def handle_cast(:new_game, state) do
+    Board.new_board(state.board)
+    Wordlist.clear(state.wordlist)
     {
       :noreply,
       %{
         state |
           game_id: Ecto.UUID.generate,
-          board: Board.new_board(state.board),
-          wordlist: Wordlist.clear(state.wordlist),
           players: clear_scores(state.players),
           game_over: false
       }
@@ -168,7 +168,7 @@ defmodule Library.Game do
     |> Enum.map(&Player.save_event(&1, List.first(players), game_id))
   end
 
-  def update_players(players, board, game_id) do
+  defp update_players(players, board, game_id) do
     new_players = update_scores(players, board)
     if Board.completed?(board) do
       save_events(new_players, game_id)

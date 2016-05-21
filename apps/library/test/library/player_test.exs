@@ -5,7 +5,6 @@ defmodule Library.PlayerTest do
   use Plug.Test
   alias Library.Player
   alias Skateboard.Repo
-  alias Skateboard.Event
   alias Ecto.Adapters.SQL
 
   setup do
@@ -29,7 +28,7 @@ defmodule Library.PlayerTest do
     player = %Player{id: 1, score: 10}
     winner = %Player{id: 1}
     loser = %Player{id: 2}
-    p = Player.save_event(player, winner, "1")
+    Player.save_event(player, winner, "1")
     p = Player.save_event(player, loser, "2")
     assert p.games_played == 2
     assert p.games_won == 1
