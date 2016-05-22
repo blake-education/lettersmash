@@ -1,6 +1,6 @@
 defmodule Library.Game do
   use GenServer
-  alias Library.{Board,Dictionary,Player,Wordlist}
+  alias Library.{Board,Dictionary,Player,Wordlist,PlayerServer,GamePlayers}
 
   @moduledoc """
 
@@ -35,9 +35,9 @@ defmodule Library.Game do
     GenServer.cast(pid, {:add_player, player})
   end
 
-  def remove_player(pid, player) when is_map(player) do
-    GenServer.cast(pid, {:remove_player, player})
-  end
+  #def remove_player(pid, player) when is_map(player) do
+    #GenServer.cast(pid, {:remove_player, player})
+  #end
 
   def name(pid) do
     GenServer.call(pid, :name)
@@ -49,6 +49,7 @@ defmodule Library.Game do
   def init(name) do
     {:ok, board} = Board.start_link(5, 5)
     {:ok, wordlist} = Wordlist.start_link
+    {:ok, game_players} = GamePlayers.start_link
     {
       :ok,
       %{
@@ -56,7 +57,7 @@ defmodule Library.Game do
         name: name,
         board: board,
         wordlist: wordlist,
-        players: [],
+        players: game_players,
         game_over: false,
         next_index: 1
       }
@@ -72,13 +73,14 @@ defmodule Library.Game do
       state.game_over ->
         {:reply, {:error, "Game Over"}, state}
       true ->
-        player = find_player(String.to_integer(player_id), state.players)
-        Board.add_word(state.board, word, player.index)
-        Wordlist.add(state.wordlist, word, player)
+        player = find_player(state.players, String.to_integer(player_id))
+        player_state = Player.get_state(player)
+        Board.add_word(state.board, word, player_state.index)
+        Wordlist.add(state.wordlist, word, player_state)
+        GamePlayers.update(state.players, state.board)
         new_state =
           %{
             state |
-              players: update_players(state.players, state.board, state.game_id),
               game_over: Board.completed?(state.board)
           }
         {:reply, :ok, new_state}
@@ -90,48 +92,52 @@ defmodule Library.Game do
   end
 
   def handle_call(:display_state, _from, state) do
+    players = Map.values(state.players)
+    |> Enum.map(&Player.get_state(&1))
     display_state =
       %{
         state |
           board: Enum.chunk(Board.letters(state.board), 5),
-          wordlist: Wordlist.words(state.wordlist)
+          wordlist: Wordlist.words(state.wordlist),
+          players: GamePlayers.display(state.players),
       }
     {:reply, display_state, state}
   end
 
   def handle_cast({:add_player, player}, state) do
-    if find_player(player.id, state.players) do
+    if find_player(state.players, player.id) do
       {:noreply, state}
     else
-      new_player = %Player{id: player.id, name: player.name, index: state.next_index}
-      new_player = Player.hydrate(new_player)
+      {:ok, new_player} = Library.PlayerServer.add_player(Map.put(player, :index, state.next_index))
       {
         :noreply,
         %{
-          state | players: state.players ++ [new_player], next_index: (state.next_index + 1)
+          state |
+            players: Map.put(state.players, player.id, new_player),
+            next_index: (state.next_index + 1)
         }
       }
     end
   end
 
-  def handle_cast({:remove_player, player}, state) do
-    {
-      :noreply,
-      %{
-        state | players: remove_player_from_state(state.players, player)
-      }
-    }
-  end
+  #def handle_cast({:remove_player, player}, state) do
+    #{
+      #:noreply,
+      #%{
+        #state | players: remove_player_from_state(state.players, player)
+      #}
+    #}
+  #end
 
   def handle_cast(:new_game, state) do
     Board.new_board(state.board)
     Wordlist.clear(state.wordlist)
+    GamePlayers.clear_scores(state.players)
     {
       :noreply,
       %{
         state |
           game_id: Ecto.UUID.generate,
-          players: clear_scores(state.players),
           game_over: false
       }
     }
@@ -141,40 +147,13 @@ defmodule Library.Game do
     {:reply, state[:name], state}
   end
 
-  defp remove_player_from_state(all_players, player) do
-    Enum.reject(all_players, &(&1.id == player.id))
+  #defp remove_player_from_state(all_players, player) do
+    #Enum.reject(all_players, &(&1.id == player.id))
+  #end
+
+  defp find_player(players, id) do
+    Map.get(players, id)
   end
 
-  defp find_player(id, players) do
-    players
-    |> Enum.find(&(&1.id == id))
-  end
-
-  defp clear_scores(players) do
-    players
-    |> Enum.map(&Map.put(&1, :score, 0))
-  end
-
-  defp update_scores(players, board) do
-    players
-    |> Enum.map(fn(player) ->
-      %{player | score: Board.letters_owned(board, player.index)}
-    end)
-    |> Enum.sort(&(&1.score > &2.score))
-  end
-
-  def save_events(players, game_id) do
-    players
-    |> Enum.map(&Player.save_event(&1, List.first(players), game_id))
-  end
-
-  defp update_players(players, board, game_id) do
-    new_players = update_scores(players, board)
-    if Board.completed?(board) do
-      save_events(new_players, game_id)
-    else
-      new_players
-    end
-  end
 
 end

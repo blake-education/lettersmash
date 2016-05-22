@@ -4,6 +4,7 @@ defmodule Library.Player do
   The Player module represents a player in the game and a summary of
   their history sourced from the events table
   """
+  use GenServer
 
   alias Skateboard.Repo
   alias Skateboard.Event
@@ -11,24 +12,83 @@ defmodule Library.Player do
   alias Library.Game
   import Ecto.Query, only: [from: 2]
 
-  defstruct name: "", score: 0, id: nil, index: nil, total_score: 0, games_played: 0, games_won: 0
+  def start_link(player) do
+    GenServer.start_link(__MODULE__, player)
+  end
 
-  def save_event(player, winner, game_id) do
+  def get_state(pid) do
+    GenServer.call(pid, :get_state)
+  end
+
+  def id(pid) do
+    GenServer.call(pid, :id)
+  end
+
+  def save_event(pid, winner, game_id) do
+    GenServer.call(pid, {:save_event, winner, game_id})
+  end
+
+  def clear_score(pid) do
+    GenServer.cast(pid, :clear_score)
+  end
+
+  def update_score(pid, score) do
+    GenServer.cast(pid, {:update_score, score})
+  end
+
+  def init(%{id: id, name: name, index: index}) do
+    {:ok,
+      %{
+        id: id,
+        name: name,
+        index: index,
+        score: 0,
+        total_score: 0,
+        games_played: 0,
+        games_won: 0
+      }
+    }
+  end
+
+  def handle_call(:get_state, _from, state) do
+    {:reply, state, state}
+  end
+
+  def handle_call(:id, _from, state) do
+    {:reply, state.id, state}
+  end
+
+  def handle_call({:save_event, player, winner, game_id}, _from, state) do
     Repo.insert(%Skateboard.Event{
       user_id: player.id,
       game_id: game_id,
       score: player.score,
       winner: player.id == winner.id
     })
-    hydrate(player)
+    new_state =
+      %{
+        state |
+          total_score: Player.total_score(player.id) || 0,
+          games_played: Player.games_played(player.id) || 0,
+          games_won: Player.games_won(player.id) || 0
+      }
+    {:reply, state, state}
   end
 
-  def hydrate(player) do
-    %Player{player |
-      total_score: Player.total_score(player.id) || 0,
-      games_played: Player.games_played(player.id) || 0,
-      games_won: Player.games_won(player.id) || 0
-    }
+  #def hydrate(player) do
+    #%Player{player |
+      #total_score: Player.total_score(player.id) || 0,
+      #games_played: Player.games_played(player.id) || 0,
+      #games_won: Player.games_won(player.id) || 0
+    #}
+  #end
+
+  def handle_cast(:clear_score, state) do
+    {:noreply, Map.put(state, :score, 0)}
+  end
+
+  def handle_cast({:update_score, score}, state) do
+    {:noreply, Map.put(state, :score, score)}
   end
 
   def total_score(player_id) do

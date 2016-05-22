@@ -3,6 +3,9 @@ defmodule Library.GameTest do
 
   alias Library.Game
 
+  def create_player do
+    
+  end
   setup do
     {:ok, game} = Game.start_link("game1")
     Game.add_player(game, %{id: 1, name: "bob", index: "2"})
@@ -14,26 +17,25 @@ defmodule Library.GameTest do
   end
 
   test "list_state - consist of board, players, wordlist and game_over keys", %{game: game} do
-
     assert %{board: _, players: _, wordlist: _, game_over: _} = Game.list_state(game)
   end
 
   test "add_player - adds a player to the state map", %{game: game} do
-
     Game.add_player(game, %{id: 1, name: "abc"})
     assert %{board: _, players: players, wordlist: _, game_over: _} = Game.list_state(game)
+    IO.inspect Game.list_state(game).players
     assert length(players) == 1
   end
 
-  test "remove_player - removes a player to the state map", %{game: game} do
-    Game.add_player(game, %{id: 1, name: "abc"})
-    assert %{board: _, players: players} = Game.list_state(game)
-    assert length(players) == 1
+  #test "remove_player - removes a player to the state map", %{game: game} do
+    #Game.add_player(game, %{id: 1, name: "abc"})
+    #assert %{board: _, players: players} = Game.list_state(game)
+    #assert length(players) == 1
 
-    Game.remove_player(game, %{id: 1, name: "abc"})
-    assert %{board: _, players: players} = Game.list_state(game)
-    assert length(players) == 0
-  end
+    #Game.remove_player(game, %{id: 1, name: "abc"})
+    #assert %{board: _, players: players} = Game.list_state(game)
+    #assert length(players) == 0
+  #end
 
   test "submit_word - with a valid word", %{game: game} do
     word = [%{letter: "C", id: 1, owner: 0, surrounded: false}, %{letter: "A", id: 2, owner: 0, surrounded: false}, %{letter: "N", id: 3, owner: 0, surrounded: false},%{letter: "E", id: 4, owner: 0, surrounded: false}]
