@@ -50,7 +50,7 @@ defmodule Library.PlayerTest do
 
   test "can save an event", %{player: player} do
     Player.update_score(player, 17)
-    state = Player.save_event(player, player, "game 1")
+    state = Player.save_event(player, 1, "game 1")
     assert state.total_score == 17 
     assert state.games_played == 1 
     assert state.games_won == 1 

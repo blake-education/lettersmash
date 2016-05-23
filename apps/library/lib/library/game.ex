@@ -77,7 +77,10 @@ defmodule Library.Game do
         player_state = Player.get_state(player)
         Board.add_word(state.board, word, player_state.index)
         Wordlist.add(state.wordlist, word, player_state)
-        GamePlayers.update(state.players, state.board)
+        GamePlayers.update_scores(state.players, state.board)
+        if Board.completed?(state.board) do
+          GamePlayers.save_events(state.players, state.game_id)
+        end
         new_state =
           %{
             state |
@@ -92,8 +95,6 @@ defmodule Library.Game do
   end
 
   def handle_call(:display_state, _from, state) do
-    players = Map.values(state.players)
-    |> Enum.map(&Player.get_state(&1))
     display_state =
       %{
         state |
@@ -109,25 +110,25 @@ defmodule Library.Game do
       {:noreply, state}
     else
       {:ok, new_player} = Library.PlayerServer.add_player(Map.put(player, :index, state.next_index))
+      GamePlayers.add_player(state.players, new_player)
       {
         :noreply,
         %{
           state |
-            players: Map.put(state.players, player.id, new_player),
             next_index: (state.next_index + 1)
         }
       }
     end
   end
 
-  #def handle_cast({:remove_player, player}, state) do
-    #{
-      #:noreply,
-      #%{
-        #state | players: remove_player_from_state(state.players, player)
-      #}
-    #}
-  #end
+  def handle_cast({:remove_player, player}, state) do
+    {
+      :noreply,
+      %{
+        state | players: GamePlayers.remove_player(state.players, player)
+      }
+    }
+  end
 
   def handle_cast(:new_game, state) do
     Board.new_board(state.board)
@@ -147,12 +148,8 @@ defmodule Library.Game do
     {:reply, state[:name], state}
   end
 
-  #defp remove_player_from_state(all_players, player) do
-    #Enum.reject(all_players, &(&1.id == player.id))
-  #end
-
   defp find_player(players, id) do
-    Map.get(players, id)
+    GamePlayers.find_player(players, id)
   end
 
 

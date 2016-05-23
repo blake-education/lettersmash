@@ -1,7 +1,7 @@
 defmodule Library.GameTest do
   use ExUnit.Case
 
-  alias Library.Game
+  alias Library.{Game,GamePlayers}
 
   def create_player do
     
@@ -23,8 +23,7 @@ defmodule Library.GameTest do
   test "add_player - adds a player to the state map", %{game: game} do
     Game.add_player(game, %{id: 1, name: "abc"})
     assert %{board: _, players: players, wordlist: _, game_over: _} = Game.list_state(game)
-    IO.inspect Game.list_state(game).players
-    assert length(players) == 1
+    assert length(GamePlayers.display(players)) == 1
   end
 
   #test "remove_player - removes a player to the state map", %{game: game} do

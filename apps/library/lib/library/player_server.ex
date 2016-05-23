@@ -10,7 +10,7 @@ defmodule Library.PlayerServer do
   def find_or_create_player(player) do
     p = find_player(player.id)
     unless p do
-      p = add_player(player)
+      {:ok, p} = add_player(player)
     end
     p
   end
