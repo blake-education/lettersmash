@@ -17,6 +17,9 @@ type alias Player =
   { name : String
   , index : Int
   , score : Int
+  , total_score : Int
+  , games_played : Int
+  , games_won : Int
   }
 
 
@@ -62,6 +65,6 @@ initialModel =
       , wordlist = []
       , game_over = False
       }
-  , errorMessage = "Welcome to LettersMash"
+  , errorMessage = ""
   }
 

@@ -9,7 +9,8 @@ defmodule Library do
     children = [
       worker(Library.Dictionary, [[], [name: :dictionary]]),
       # Define workers and child supervisors to be supervised
-      worker(Library.Game, []),
+      supervisor(Library.GameServer, []),
+      supervisor(Library.PlayerServer, [])
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html

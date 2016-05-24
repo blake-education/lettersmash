@@ -85,17 +85,53 @@ form.link, form.button {
 .letter {
   background-color: LightGray;
   line-height: 1.10;
-  padding-left: 30px;
-  padding-right: 30px;
+  padding-left: 20px;
+  padding-right: 20px;
   text-align: center;
   overflow: auto;
   font-family: "Courier";
   font-size: 60px;
 }
 
+.mini-letter {
+  background-color: LightGray;
+  line-height: 1.10;
+  padding-left: 10px;
+  padding-right: 10px;
+  text-align: center;
+  overflow: auto;
+  font-family: "Andale Mono, Courier";
+  font-size: 40px;
+}
+
 .surrounded {
   filter: saturate(180%);
   font-weight: 800;
+}
+
+.selected {
+  opacity: 0.25;
+}
+
+.board {
+  cursor: pointer;
+}
+
+.player {
+  border: 2px solid grey;
+  border-radius: 4px;
+  padding: 3px;
+}
+
+.player .name {
+  font-size: 110%;
+  font-weight: 600;
+}
+
+.player .total {
+  margin: 0 5px 0 0;
+  font-size: 80%;
+  font-weight: 600;
 }
 
 

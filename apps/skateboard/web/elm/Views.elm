@@ -6,7 +6,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events as Events
 import String
-import List exposing (length)
+import List exposing (length, member)
 import Array exposing (fromList, get)
 import Json.Encode exposing (string)
 
@@ -33,40 +33,38 @@ view model =
     [ class "outer"]
     [ div
       [ class "row" ]
-      [ flash model
-      , div
-          [ class "board col-md-12" ]
-          (List.map boardRow model.boardState.board)
-      ]
+      [ flash model ]
     , div
-      [ class "row" ]
-      [ div
-        [ class "col-md-12"]
-        [ div
-          [ class "form"]
-          [ div
-            [ class "btn-group"]
-            [ button
-                [ class "btn btn-default", disabled (hideClear model.candidate), Events.onClick Clear ]
-                [ text "Clear" ]
-            , button
-                [ class "btn btn-default", disabled (hideClear model.candidate), Events.onClick Backspace ]
-                [ text "<-" ]
-            , button
-                [ class "btn btn-primary", disabled (hideSubmit model.candidate), Events.onClick Submit ]
-                [ text "Submit" ]
-            , button
-                [ class "btn btn", disabled (not model.boardState.game_over), Events.onClick RequestNewGame ]
-                [ text "New Game" ]
-            ]
-          ]
+      [ classList
+        [ ("row game-over", True)
+        , ("hidden", not model.boardState.game_over)
         ]
       ]
+      [ div
+        [ class "col-md-4" ]
+        [ h2 [] [text "Game Over"] ]
+      , div
+        [ class "col-md-4" ]
+        [ button
+          [ class "btn btn", disabled (not model.boardState.game_over), Events.onClick RequestNewGame ]
+          [ text "New Game" ]
+        ]
+    ]
     , div
       [ class "row" ]
       [ div
         [ class "board col-md-12" ]
-        [h2 [ class "candidate" ] [ text (List.foldl (\c a -> a ++ c.letter) "" model.candidate) ]]
+        (List.map (boardRow model.candidate) model.boardState.board)
+      ]
+    , buttons model
+    , div
+      [ class "row" ]
+      [ div
+        [ class "board col-md-12" ]
+        [h2
+          [ class "candidate" ]
+          (List.map candidateLetterView model.candidate)
+        ]
       ]
     , div
       [ class "row" ]
@@ -79,6 +77,29 @@ view model =
       ]
     ]
 
+buttons: Model -> Html Msg
+buttons model =
+ div
+  [ class "row" ]
+  [ div
+    [ class "col-md-12"]
+    [ div
+      [ class "form"]
+      [ div
+        [ class "btn-group"]
+        [ button
+            [ class "btn btn-default", disabled (hideClear model.candidate), Events.onClick Clear ]
+            [ text "Clear" ]
+        , button
+            [ class "btn btn-default", disabled (hideClear model.candidate), Events.onClick Backspace ]
+            [ text "<-" ]
+        , button
+            [ class "btn btn-primary", disabled (hideSubmit model.candidate), Events.onClick Submit ]
+            [ text "Submit" ]
+        ]
+      ]
+    ]
+  ]
 
 hideSubmit : Candidate -> Bool
 hideSubmit candidate =
@@ -98,30 +119,63 @@ hideClear candidate =
 playerView : Player -> Html msg
 playerView player =
   div
-    [ playerStyle player ]
-    [ h4 [] [ text (player.name ++ " " ++ toString (player.score)) ] ]
+    [ ]
+    [ playerBadge player]
 
+playerBadge : Player -> Html msg
+playerBadge player =
+  div
+    [class "player", backgroundStyle player.index]
+    [ div
+      [class "name"]
+      [text (player.name ++ " " ++ toString (player.score))]
+    , span
+      [class "total"]
+      [text ("Points: " ++ toString (player.total_score))]
+    , span
+      [class "total"]
+      [text ("Won: " ++ toString (player.games_won))]
+    , span
+      [class "total"]
+      [text ("Played: " ++ toString (player.games_played))]
+    ]
 
 wordlistView : Word -> Html msg
 wordlistView word  =
   div
-    [ wordStyle word ]
+    [ backgroundStyle word.played_by ]
     [ h4 [] [ text word.word ] ]
 
 
-boardRow : BoardRow -> Html Msg
-boardRow letters =
+boardRow : Candidate -> BoardRow -> Html Msg
+boardRow candidate letters =
   div
     []
-    (List.map letterView letters)
+    (List.map (letterView candidate) letters)
 
 
-letterView : Letter -> Html Msg
-letterView letter =
+letterView : Candidate -> Letter -> Html Msg
+letterView candidate letter =
   span
-    [ class(letterClass letter)
-    , letterStyle letter
+    [ classList
+      [ ("letter", True)
+      , ("surrounded", letter.surrounded)
+      , ("selected", (letterSelected letter candidate) == True)
+      ]
+    , backgroundStyle letter.owner
     , Events.onClick (Select letter)
+    ]
+    [ text (letter.letter) ]
+
+
+candidateLetterView : Letter -> Html Msg
+candidateLetterView letter =
+  span
+    [ classList
+      [ ("mini letter", True)
+      , ("surrounded", letter.surrounded)
+      ]
+    , backgroundStyle letter.owner
     ]
     [ text (letter.letter) ]
 
@@ -132,44 +186,19 @@ flash model =
     span [] []
   else
     div
-      [ class "alert alert-warning"
+      [ class "col-md-12 alert alert-warning"
       ]
       [ text model.errorMessage ]
 
 
-letterStyle : Letter -> Attribute msg
-letterStyle letter =
-  style [ ( "background-color", letterColour letter ) ]
+backgroundStyle : Int -> Attribute msg
+backgroundStyle index =
+  style [ ( "background-color", colourFromList index ) ]
 
+colourFromList : Int -> String
+colourFromList index =
+  Maybe.withDefault "grey" (get index (fromList colors))
 
-playerStyle : Player -> Attribute msg
-playerStyle player =
-  style [ ( "background-color", playerColour player ) ]
-
-
-wordStyle : Word -> Attribute msg
-wordStyle word =
-  style [ ( "background-color", wordColour word ) ]
-
-
-letterColour : Letter -> String
-letterColour letter =
-  Maybe.withDefault "grey" (get letter.owner (fromList colors))
-
-
-playerColour : Player -> String
-playerColour player =
-  Maybe.withDefault "grey" (get player.index (fromList colors))
-
-wordColour : Word -> String
-wordColour word =
-  Maybe.withDefault "grey" (get word.played_by (fromList colors))
-
-
-letterClass : Letter -> String
-letterClass letter =
-  if letter.surrounded then
-     "letter surrounded"
-  else
-    "letter"
-
+letterSelected : Letter -> Candidate ->  Bool
+letterSelected letter candidate =
+  List.any (\c -> letter.id == c.id) candidate

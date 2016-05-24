@@ -2535,15 +2535,15 @@ var _blake_education$lettersmash$Models$initialModel = {
 			[]),
 		game_over: false
 	},
-	errorMessage: 'Welcome to LettersMash'
+	errorMessage: ''
 };
 var _blake_education$lettersmash$Models$Letter = F4(
 	function (a, b, c, d) {
 		return {letter: a, id: b, owner: c, surrounded: d};
 	});
-var _blake_education$lettersmash$Models$Player = F3(
-	function (a, b, c) {
-		return {name: a, index: b, score: c};
+var _blake_education$lettersmash$Models$Player = F6(
+	function (a, b, c, d, e, f) {
+		return {name: a, index: b, score: c, total_score: d, games_played: e, games_won: f};
 	});
 var _blake_education$lettersmash$Models$Word = F2(
 	function (a, b) {
@@ -7210,9 +7210,15 @@ var _elm_lang$html$Html_Events$Options = F2(
 		return {stopPropagation: a, preventDefault: b};
 	});
 
-var _blake_education$lettersmash$Views$letterClass = function (letter) {
-	return letter.surrounded ? 'letter surrounded' : 'letter';
-};
+var _blake_education$lettersmash$Views$letterSelected = F2(
+	function (letter, candidate) {
+		return A2(
+			_elm_lang$core$List$any,
+			function (c) {
+				return _elm_lang$core$Native_Utils.eq(letter.id, c.id);
+			},
+			candidate);
+	});
 var _blake_education$lettersmash$Views$flash = function (model) {
 	return _elm_lang$core$String$isEmpty(model.errorMessage) ? A2(
 		_elm_lang$html$Html$span,
@@ -7223,7 +7229,7 @@ var _blake_education$lettersmash$Views$flash = function (model) {
 		_elm_lang$html$Html$div,
 		_elm_lang$core$Native_List.fromArray(
 			[
-				_elm_lang$html$Html_Attributes$class('alert alert-warning')
+				_elm_lang$html$Html_Attributes$class('col-md-12 alert alert-warning')
 			]),
 		_elm_lang$core$Native_List.fromArray(
 			[
@@ -7243,84 +7249,121 @@ var _blake_education$lettersmash$Views$hideSubmit = function (candidate) {
 		_elm_lang$core$List$length(candidate),
 		4) < 0;
 };
-var _blake_education$lettersmash$Views$colors = _elm_lang$core$Native_List.fromArray(
-	['LightGrey', '#ef476f', '#ffd166', '#06d6a0', '#118ab2', '#773b9c', '#247ba0', '#70c1b3', '#b2dbbf', '#f3ffbd', '#ff1654']);
-var _blake_education$lettersmash$Views$letterColour = function (letter) {
-	return A2(
-		_elm_lang$core$Maybe$withDefault,
-		'grey',
-		A2(
-			_elm_lang$core$Array$get,
-			letter.owner,
-			_elm_lang$core$Array$fromList(_blake_education$lettersmash$Views$colors)));
-};
-var _blake_education$lettersmash$Views$letterStyle = function (letter) {
-	return _elm_lang$html$Html_Attributes$style(
-		_elm_lang$core$Native_List.fromArray(
-			[
-				{
-				ctor: '_Tuple2',
-				_0: 'background-color',
-				_1: _blake_education$lettersmash$Views$letterColour(letter)
-			}
-			]));
-};
-var _blake_education$lettersmash$Views$letterView = function (letter) {
-	return A2(
-		_elm_lang$html$Html$span,
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_elm_lang$html$Html_Attributes$class(
-				_blake_education$lettersmash$Views$letterClass(letter)),
-				_blake_education$lettersmash$Views$letterStyle(letter),
-				_elm_lang$html$Html_Events$onClick(
-				_blake_education$lettersmash$Actions$Select(letter))
-			]),
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_elm_lang$html$Html$text(letter.letter)
-			]));
-};
-var _blake_education$lettersmash$Views$boardRow = function (letters) {
-	return A2(
-		_elm_lang$html$Html$div,
-		_elm_lang$core$Native_List.fromArray(
-			[]),
-		A2(_elm_lang$core$List$map, _blake_education$lettersmash$Views$letterView, letters));
-};
-var _blake_education$lettersmash$Views$playerColour = function (player) {
-	return A2(
-		_elm_lang$core$Maybe$withDefault,
-		'grey',
-		A2(
-			_elm_lang$core$Array$get,
-			player.index,
-			_elm_lang$core$Array$fromList(_blake_education$lettersmash$Views$colors)));
-};
-var _blake_education$lettersmash$Views$playerStyle = function (player) {
-	return _elm_lang$html$Html_Attributes$style(
-		_elm_lang$core$Native_List.fromArray(
-			[
-				{
-				ctor: '_Tuple2',
-				_0: 'background-color',
-				_1: _blake_education$lettersmash$Views$playerColour(player)
-			}
-			]));
-};
-var _blake_education$lettersmash$Views$playerView = function (player) {
+var _blake_education$lettersmash$Views$buttons = function (model) {
 	return A2(
 		_elm_lang$html$Html$div,
 		_elm_lang$core$Native_List.fromArray(
 			[
-				_blake_education$lettersmash$Views$playerStyle(player)
+				_elm_lang$html$Html_Attributes$class('row')
 			]),
 		_elm_lang$core$Native_List.fromArray(
 			[
 				A2(
-				_elm_lang$html$Html$h4,
+				_elm_lang$html$Html$div,
 				_elm_lang$core$Native_List.fromArray(
-					[]),
+					[
+						_elm_lang$html$Html_Attributes$class('col-md-12')
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						A2(
+						_elm_lang$html$Html$div,
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html_Attributes$class('form')
+							]),
+						_elm_lang$core$Native_List.fromArray(
+							[
+								A2(
+								_elm_lang$html$Html$div,
+								_elm_lang$core$Native_List.fromArray(
+									[
+										_elm_lang$html$Html_Attributes$class('btn-group')
+									]),
+								_elm_lang$core$Native_List.fromArray(
+									[
+										A2(
+										_elm_lang$html$Html$button,
+										_elm_lang$core$Native_List.fromArray(
+											[
+												_elm_lang$html$Html_Attributes$class('btn btn-default'),
+												_elm_lang$html$Html_Attributes$disabled(
+												_blake_education$lettersmash$Views$hideClear(model.candidate)),
+												_elm_lang$html$Html_Events$onClick(_blake_education$lettersmash$Actions$Clear)
+											]),
+										_elm_lang$core$Native_List.fromArray(
+											[
+												_elm_lang$html$Html$text('Clear')
+											])),
+										A2(
+										_elm_lang$html$Html$button,
+										_elm_lang$core$Native_List.fromArray(
+											[
+												_elm_lang$html$Html_Attributes$class('btn btn-default'),
+												_elm_lang$html$Html_Attributes$disabled(
+												_blake_education$lettersmash$Views$hideClear(model.candidate)),
+												_elm_lang$html$Html_Events$onClick(_blake_education$lettersmash$Actions$Backspace)
+											]),
+										_elm_lang$core$Native_List.fromArray(
+											[
+												_elm_lang$html$Html$text('<-')
+											])),
+										A2(
+										_elm_lang$html$Html$button,
+										_elm_lang$core$Native_List.fromArray(
+											[
+												_elm_lang$html$Html_Attributes$class('btn btn-primary'),
+												_elm_lang$html$Html_Attributes$disabled(
+												_blake_education$lettersmash$Views$hideSubmit(model.candidate)),
+												_elm_lang$html$Html_Events$onClick(_blake_education$lettersmash$Actions$Submit)
+											]),
+										_elm_lang$core$Native_List.fromArray(
+											[
+												_elm_lang$html$Html$text('Submit')
+											]))
+									]))
+							]))
+					]))
+			]));
+};
+var _blake_education$lettersmash$Views$colors = _elm_lang$core$Native_List.fromArray(
+	['LightGrey', '#ef476f', '#ffd166', '#06d6a0', '#118ab2', '#773b9c', '#247ba0', '#70c1b3', '#b2dbbf', '#f3ffbd', '#ff1654']);
+var _blake_education$lettersmash$Views$colourFromList = function (index) {
+	return A2(
+		_elm_lang$core$Maybe$withDefault,
+		'grey',
+		A2(
+			_elm_lang$core$Array$get,
+			index,
+			_elm_lang$core$Array$fromList(_blake_education$lettersmash$Views$colors)));
+};
+var _blake_education$lettersmash$Views$backgroundStyle = function (index) {
+	return _elm_lang$html$Html_Attributes$style(
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{
+				ctor: '_Tuple2',
+				_0: 'background-color',
+				_1: _blake_education$lettersmash$Views$colourFromList(index)
+			}
+			]));
+};
+var _blake_education$lettersmash$Views$playerBadge = function (player) {
+	return A2(
+		_elm_lang$html$Html$div,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html_Attributes$class('player'),
+				_blake_education$lettersmash$Views$backgroundStyle(player.index)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				A2(
+				_elm_lang$html$Html$div,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$class('name')
+					]),
 				_elm_lang$core$Native_List.fromArray(
 					[
 						_elm_lang$html$Html$text(
@@ -7331,27 +7374,59 @@ var _blake_education$lettersmash$Views$playerView = function (player) {
 								_elm_lang$core$Basics_ops['++'],
 								' ',
 								_elm_lang$core$Basics$toString(player.score))))
+					])),
+				A2(
+				_elm_lang$html$Html$span,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$class('total')
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text(
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							'Points: ',
+							_elm_lang$core$Basics$toString(player.total_score)))
+					])),
+				A2(
+				_elm_lang$html$Html$span,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$class('total')
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text(
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							'Won: ',
+							_elm_lang$core$Basics$toString(player.games_won)))
+					])),
+				A2(
+				_elm_lang$html$Html$span,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$class('total')
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text(
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							'Played: ',
+							_elm_lang$core$Basics$toString(player.games_played)))
 					]))
 			]));
 };
-var _blake_education$lettersmash$Views$wordColour = function (word) {
+var _blake_education$lettersmash$Views$playerView = function (player) {
 	return A2(
-		_elm_lang$core$Maybe$withDefault,
-		'grey',
-		A2(
-			_elm_lang$core$Array$get,
-			word.played_by,
-			_elm_lang$core$Array$fromList(_blake_education$lettersmash$Views$colors)));
-};
-var _blake_education$lettersmash$Views$wordStyle = function (word) {
-	return _elm_lang$html$Html_Attributes$style(
+		_elm_lang$html$Html$div,
+		_elm_lang$core$Native_List.fromArray(
+			[]),
 		_elm_lang$core$Native_List.fromArray(
 			[
-				{
-				ctor: '_Tuple2',
-				_0: 'background-color',
-				_1: _blake_education$lettersmash$Views$wordColour(word)
-			}
+				_blake_education$lettersmash$Views$playerBadge(player)
 			]));
 };
 var _blake_education$lettersmash$Views$wordlistView = function (word) {
@@ -7359,7 +7434,7 @@ var _blake_education$lettersmash$Views$wordlistView = function (word) {
 		_elm_lang$html$Html$div,
 		_elm_lang$core$Native_List.fromArray(
 			[
-				_blake_education$lettersmash$Views$wordStyle(word)
+				_blake_education$lettersmash$Views$backgroundStyle(word.played_by)
 			]),
 		_elm_lang$core$Native_List.fromArray(
 			[
@@ -7371,6 +7446,63 @@ var _blake_education$lettersmash$Views$wordlistView = function (word) {
 					[
 						_elm_lang$html$Html$text(word.word)
 					]))
+			]));
+};
+var _blake_education$lettersmash$Views$letterView = F2(
+	function (candidate, letter) {
+		return A2(
+			_elm_lang$html$Html$span,
+			_elm_lang$core$Native_List.fromArray(
+				[
+					_elm_lang$html$Html_Attributes$classList(
+					_elm_lang$core$Native_List.fromArray(
+						[
+							{ctor: '_Tuple2', _0: 'letter', _1: true},
+							{ctor: '_Tuple2', _0: 'surrounded', _1: letter.surrounded},
+							{
+							ctor: '_Tuple2',
+							_0: 'selected',
+							_1: _elm_lang$core$Native_Utils.eq(
+								A2(_blake_education$lettersmash$Views$letterSelected, letter, candidate),
+								true)
+						}
+						])),
+					_blake_education$lettersmash$Views$backgroundStyle(letter.owner),
+					_elm_lang$html$Html_Events$onClick(
+					_blake_education$lettersmash$Actions$Select(letter))
+				]),
+			_elm_lang$core$Native_List.fromArray(
+				[
+					_elm_lang$html$Html$text(letter.letter)
+				]));
+	});
+var _blake_education$lettersmash$Views$boardRow = F2(
+	function (candidate, letters) {
+		return A2(
+			_elm_lang$html$Html$div,
+			_elm_lang$core$Native_List.fromArray(
+				[]),
+			A2(
+				_elm_lang$core$List$map,
+				_blake_education$lettersmash$Views$letterView(candidate),
+				letters));
+	});
+var _blake_education$lettersmash$Views$candidateLetterView = function (letter) {
+	return A2(
+		_elm_lang$html$Html$span,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html_Attributes$classList(
+				_elm_lang$core$Native_List.fromArray(
+					[
+						{ctor: '_Tuple2', _0: 'mini letter', _1: true},
+						{ctor: '_Tuple2', _0: 'surrounded', _1: letter.surrounded}
+					])),
+				_blake_education$lettersmash$Views$backgroundStyle(letter.owner)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html$text(letter.letter)
 			]));
 };
 var _blake_education$lettersmash$Views$view = function (model) {
@@ -7390,14 +7522,64 @@ var _blake_education$lettersmash$Views$view = function (model) {
 					]),
 				_elm_lang$core$Native_List.fromArray(
 					[
-						_blake_education$lettersmash$Views$flash(model),
+						_blake_education$lettersmash$Views$flash(model)
+					])),
+				A2(
+				_elm_lang$html$Html$div,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$classList(
+						_elm_lang$core$Native_List.fromArray(
+							[
+								{ctor: '_Tuple2', _0: 'row game-over', _1: true},
+								{
+								ctor: '_Tuple2',
+								_0: 'hidden',
+								_1: _elm_lang$core$Basics$not(model.boardState.game_over)
+							}
+							]))
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
 						A2(
 						_elm_lang$html$Html$div,
 						_elm_lang$core$Native_List.fromArray(
 							[
-								_elm_lang$html$Html_Attributes$class('board col-md-12')
+								_elm_lang$html$Html_Attributes$class('col-md-4')
 							]),
-						A2(_elm_lang$core$List$map, _blake_education$lettersmash$Views$boardRow, model.boardState.board))
+						_elm_lang$core$Native_List.fromArray(
+							[
+								A2(
+								_elm_lang$html$Html$h2,
+								_elm_lang$core$Native_List.fromArray(
+									[]),
+								_elm_lang$core$Native_List.fromArray(
+									[
+										_elm_lang$html$Html$text('Game Over')
+									]))
+							])),
+						A2(
+						_elm_lang$html$Html$div,
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html_Attributes$class('col-md-4')
+							]),
+						_elm_lang$core$Native_List.fromArray(
+							[
+								A2(
+								_elm_lang$html$Html$button,
+								_elm_lang$core$Native_List.fromArray(
+									[
+										_elm_lang$html$Html_Attributes$class('btn btn'),
+										_elm_lang$html$Html_Attributes$disabled(
+										_elm_lang$core$Basics$not(model.boardState.game_over)),
+										_elm_lang$html$Html_Events$onClick(_blake_education$lettersmash$Actions$RequestNewGame)
+									]),
+								_elm_lang$core$Native_List.fromArray(
+									[
+										_elm_lang$html$Html$text('New Game')
+									]))
+							]))
 					])),
 				A2(
 				_elm_lang$html$Html$div,
@@ -7411,82 +7593,14 @@ var _blake_education$lettersmash$Views$view = function (model) {
 						_elm_lang$html$Html$div,
 						_elm_lang$core$Native_List.fromArray(
 							[
-								_elm_lang$html$Html_Attributes$class('col-md-12')
+								_elm_lang$html$Html_Attributes$class('board col-md-12')
 							]),
-						_elm_lang$core$Native_List.fromArray(
-							[
-								A2(
-								_elm_lang$html$Html$div,
-								_elm_lang$core$Native_List.fromArray(
-									[
-										_elm_lang$html$Html_Attributes$class('form')
-									]),
-								_elm_lang$core$Native_List.fromArray(
-									[
-										A2(
-										_elm_lang$html$Html$div,
-										_elm_lang$core$Native_List.fromArray(
-											[
-												_elm_lang$html$Html_Attributes$class('btn-group')
-											]),
-										_elm_lang$core$Native_List.fromArray(
-											[
-												A2(
-												_elm_lang$html$Html$button,
-												_elm_lang$core$Native_List.fromArray(
-													[
-														_elm_lang$html$Html_Attributes$class('btn btn-default'),
-														_elm_lang$html$Html_Attributes$disabled(
-														_blake_education$lettersmash$Views$hideClear(model.candidate)),
-														_elm_lang$html$Html_Events$onClick(_blake_education$lettersmash$Actions$Clear)
-													]),
-												_elm_lang$core$Native_List.fromArray(
-													[
-														_elm_lang$html$Html$text('Clear')
-													])),
-												A2(
-												_elm_lang$html$Html$button,
-												_elm_lang$core$Native_List.fromArray(
-													[
-														_elm_lang$html$Html_Attributes$class('btn btn-default'),
-														_elm_lang$html$Html_Attributes$disabled(
-														_blake_education$lettersmash$Views$hideClear(model.candidate)),
-														_elm_lang$html$Html_Events$onClick(_blake_education$lettersmash$Actions$Backspace)
-													]),
-												_elm_lang$core$Native_List.fromArray(
-													[
-														_elm_lang$html$Html$text('<-')
-													])),
-												A2(
-												_elm_lang$html$Html$button,
-												_elm_lang$core$Native_List.fromArray(
-													[
-														_elm_lang$html$Html_Attributes$class('btn btn-primary'),
-														_elm_lang$html$Html_Attributes$disabled(
-														_blake_education$lettersmash$Views$hideSubmit(model.candidate)),
-														_elm_lang$html$Html_Events$onClick(_blake_education$lettersmash$Actions$Submit)
-													]),
-												_elm_lang$core$Native_List.fromArray(
-													[
-														_elm_lang$html$Html$text('Submit')
-													])),
-												A2(
-												_elm_lang$html$Html$button,
-												_elm_lang$core$Native_List.fromArray(
-													[
-														_elm_lang$html$Html_Attributes$class('btn btn'),
-														_elm_lang$html$Html_Attributes$disabled(
-														_elm_lang$core$Basics$not(model.boardState.game_over)),
-														_elm_lang$html$Html_Events$onClick(_blake_education$lettersmash$Actions$RequestNewGame)
-													]),
-												_elm_lang$core$Native_List.fromArray(
-													[
-														_elm_lang$html$Html$text('New Game')
-													]))
-											]))
-									]))
-							]))
+						A2(
+							_elm_lang$core$List$map,
+							_blake_education$lettersmash$Views$boardRow(model.candidate),
+							model.boardState.board))
 					])),
+				_blake_education$lettersmash$Views$buttons(model),
 				A2(
 				_elm_lang$html$Html$div,
 				_elm_lang$core$Native_List.fromArray(
@@ -7509,18 +7623,7 @@ var _blake_education$lettersmash$Views$view = function (model) {
 									[
 										_elm_lang$html$Html_Attributes$class('candidate')
 									]),
-								_elm_lang$core$Native_List.fromArray(
-									[
-										_elm_lang$html$Html$text(
-										A3(
-											_elm_lang$core$List$foldl,
-											F2(
-												function (c, a) {
-													return A2(_elm_lang$core$Basics_ops['++'], a, c.letter);
-												}),
-											'',
-											model.candidate))
-									]))
+								A2(_elm_lang$core$List$map, _blake_education$lettersmash$Views$candidateLetterView, model.candidate))
 							]))
 					])),
 				A2(
@@ -7743,8 +7846,23 @@ var _blake_education$lettersmash$GameBoard$boardState = _elm_lang$core$Native_Pl
 											_elm_lang$core$Json_Decode$andThen,
 											A2(_elm_lang$core$Json_Decode_ops[':='], 'score', _elm_lang$core$Json_Decode$int),
 											function (score) {
-												return _elm_lang$core$Json_Decode$succeed(
-													{name: name, index: index, score: score});
+												return A2(
+													_elm_lang$core$Json_Decode$andThen,
+													A2(_elm_lang$core$Json_Decode_ops[':='], 'total_score', _elm_lang$core$Json_Decode$int),
+													function (total_score) {
+														return A2(
+															_elm_lang$core$Json_Decode$andThen,
+															A2(_elm_lang$core$Json_Decode_ops[':='], 'games_played', _elm_lang$core$Json_Decode$int),
+															function (games_played) {
+																return A2(
+																	_elm_lang$core$Json_Decode$andThen,
+																	A2(_elm_lang$core$Json_Decode_ops[':='], 'games_won', _elm_lang$core$Json_Decode$int),
+																	function (games_won) {
+																		return _elm_lang$core$Json_Decode$succeed(
+																			{name: name, index: index, score: score, total_score: total_score, games_played: games_played, games_won: games_won});
+																	});
+															});
+													});
 											});
 									});
 							}))),
