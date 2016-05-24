@@ -54,7 +54,7 @@ defmodule Library.GameTest do
   test "returns a display_state for the front-end", %{game: game} do
     state = Game.display_state(game)
     assert length(state.players) == 1
-    assert length(state.board) == 5 # chuncked letters
+    assert length(state.board) == 5 # chunked letters
     assert length(state.wordlist) == 0
     assert state.game_over == false
   end

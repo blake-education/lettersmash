@@ -46,13 +46,13 @@ defmodule Skateboard.GameChannel do
     {:noreply, socket}
   end
 
+  def handle_info(_, socket) do
+    {:noreply, socket}
+  end
+
   defp broadcast_state(socket) do
     game = find_or_create_game(socket.assigns.game_name)
     broadcast!(socket, "board_state", Game.display_state(game))
-  end
-
-  def handle_info(_, socket) do
-    {:noreply, socket}
   end
 
   defp find_or_create_game(name) do

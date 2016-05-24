@@ -1,6 +1,6 @@
 defmodule Library.Game do
   use GenServer
-  alias Library.{Board,Dictionary,Player,Wordlist,PlayerServer,GamePlayers}
+  alias Library.{Board,Dictionary,Player,Wordlist,GamePlayers}
 
   @moduledoc """
 
@@ -73,14 +73,7 @@ defmodule Library.Game do
       state.game_over ->
         {:reply, {:error, "Game Over"}, state}
       true ->
-        player = find_player(state.players, String.to_integer(player_id))
-        player_state = Player.get_state(player)
-        Board.add_word(state.board, word, player_state.index)
-        Wordlist.add(state.wordlist, word, player_state)
-        GamePlayers.update_scores(state.players, state.board)
-        if Board.completed?(state.board) do
-          GamePlayers.save_events(state.players, state.game_id)
-        end
+        add_word(word, player_id, state)
         new_state =
           %{
             state |
@@ -95,14 +88,18 @@ defmodule Library.Game do
   end
 
   def handle_call(:display_state, _from, state) do
-    display_state =
+    model =
       %{
         state |
           board: Enum.chunk(Board.letters(state.board), 5),
           wordlist: Wordlist.words(state.wordlist),
           players: GamePlayers.display(state.players),
       }
-    {:reply, display_state, state}
+    {:reply, model, state}
+  end
+
+  def handle_call(:name, _from, state) do
+    {:reply, state[:name], state}
   end
 
   def handle_cast({:add_player, player}, state) do
@@ -144,13 +141,19 @@ defmodule Library.Game do
     }
   end
 
-  def handle_call(:name, _from, state) do
-    {:reply, state[:name], state}
+  defp add_word(word, player_id, state) do
+    player = find_player(state.players, String.to_integer(player_id))
+    player_state = Player.get_state(player)
+    Board.add_word(state.board, word, player_state.index)
+    Wordlist.add(state.wordlist, word, player_state)
+    GamePlayers.update_scores(state.players, state.board)
+    if Board.completed?(state.board) do
+      GamePlayers.save_events(state.players, state.game_id)
+    end
   end
 
   defp find_player(players, id) do
     GamePlayers.find_player(players, id)
   end
-
 
 end

@@ -5,7 +5,7 @@ defmodule Library.LetterGenerator do
 
   def generate(count) when count <= 0, do: []
   def generate(num_of_letters) do
-    :random.seed :erlang.now
+    :random.seed :erlang.timestamp
     Enum.take_random letters_with_frequencies, num_of_letters
   end
 

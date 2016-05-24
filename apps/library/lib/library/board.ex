@@ -116,23 +116,18 @@ defmodule Library.Board do
     end)
   end
 
-  defp replace_letter(letters, letter, owner) do
-    index = letter.id
-    current_letter = Enum.at(letters, letter.id)
-    if current_letter.surrounded do
-      letters
+  defp replace_letter(tiles, letter, owner) do
+    if Enum.at(tiles, letter.id).surrounded do
+      tiles
     else
-      List.replace_at(letters, letter.id, %{letter | owner: owner})
+      List.replace_at(tiles, letter.id, %{letter | owner: owner})
     end
   end
 
-  @doc """
-  traverse letters, marking as surrounded if all neighbours have same owner
-  """
-  defp surrounded(letters, width, height) do
-    letters
+  defp surrounded(tiles, width, height) do
+    tiles
     |> Enum.map(fn(letter) ->
-      %{letter | surrounded: Letter.surrounded(letter, letters, width, height)}
+      %{letter | surrounded: Letter.surrounded(letter, tiles, width, height)}
     end)
   end
 

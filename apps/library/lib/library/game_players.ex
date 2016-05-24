@@ -24,16 +24,16 @@ defmodule Library.GamePlayers do
     GenServer.call(pid, :clear_scores)
   end
 
+  def display(pid) do
+    GenServer.call(pid, :display)
+  end
+
   def update_scores(pid, board) do
-    GenServer.call(pid, {:update_scores, board})
+    GenServer.cast(pid, {:update_scores, board})
   end
 
   def save_events(pid, game_id) do
-    GenServer.call(pid, {:save_events, game_id})
-  end
-
-  def display(pid) do
-    GenServer.call(pid, :display)
+    GenServer.cast(pid, {:save_events, game_id})
   end
 
   def init(:ok) do
@@ -41,6 +41,7 @@ defmodule Library.GamePlayers do
   end
 
   def handle_call({:add_player, player}, _from, state) do
+    Player.hydrate(player)
     new_state = [player | state]
     {:reply, new_state, new_state}
   end
@@ -62,27 +63,27 @@ defmodule Library.GamePlayers do
     {:reply, state, state}
   end
 
-  def handle_call({:update_scores, board}, _from, state) do
+  def handle_call(:display, _from, state) do
+    players = state
+    |> Enum.map(fn(player) -> Player.get_state(player) end)
+    |> Enum.sort(&(&1.score > &2.score))
+    {:reply, players, state}
+  end
+
+  def handle_cast({:update_scores, board}, state) do
     state
     |> Enum.map(fn(player) ->
       index = Player.get_state(player).index
       count = Board.letters_owned(board, index)
       Player.update_score(player, count)
     end)
-    {:reply, state, state}
+    {:noreply, state}
   end
 
-  def handle_call({:save_events, game_id}, _from, state) do
+  def handle_cast({:save_events, game_id}, state) do
     state
     |> Enum.map(&Player.save_event(&1, Player.id(List.first(state)), game_id))
-    {:reply, state, state}
-  end
-
-  def handle_call(:display, _from, state) do
-    display = state
-    |> Enum.map(fn(player) -> Player.get_state(player) end)
-    |> Enum.sort(&(&1.score > &2.score))
-    {:reply, display, state}
+    {:noreply, state}
   end
 
 end
