@@ -1,10 +1,6 @@
 defmodule Library.Game do
   use GenServer
-  alias Library.Board
-  alias Library.Dictionary
-  alias Library.Player
-
-  @generator Library.LetterGenerator
+  alias Library.{Board,Dictionary,Player,Wordlist,PlayerServer,GamePlayers}
 
   @moduledoc """
 
@@ -23,7 +19,9 @@ defmodule Library.Game do
     %{board: [], players: [%{id: 1, name: "abc"}]}
   """
 
-  def start_link, do: GenServer.start_link(__MODULE__, :ok, name: :current_game)
+  def start_link(name) do
+    GenServer.start_link(__MODULE__, name, name: :"#{name}")
+  end
 
   def submit_word(pid, word, player) do
     GenServer.call(pid, {:submit_word, word, player})
@@ -37,178 +35,122 @@ defmodule Library.Game do
     GenServer.cast(pid, {:add_player, player})
   end
 
-  def remove_player(pid, player) when is_map(player) do
-    GenServer.cast(pid, {:remove_player, player})
-  end
+  #def remove_player(pid, player) when is_map(player) do
+    #GenServer.cast(pid, {:remove_player, player})
+  #end
 
-  def finished?(pid) do
-    GenServer.call(pid, :finished?)
-  end
-
-  def players(pid) do
-    GenServer.call(pid, :players)
+  def name(pid) do
+    GenServer.call(pid, :name)
   end
 
   def display_state(pid), do: GenServer.call(pid, :display_state)
   def list_state(pid), do: GenServer.call(pid, :list_state)
 
-  def init(:ok) do
+  def init(name) do
+    {:ok, board} = Board.start_link(5, 5)
+    {:ok, wordlist} = Wordlist.start_link
+    {:ok, game_players} = GamePlayers.start_link
     {
       :ok,
       %{
         game_id: Ecto.UUID.generate,
-        board: Board.generate,
-        players: [],
-        wordlist: [],
+        name: name,
+        board: board,
+        wordlist: wordlist,
+        players: game_players,
         game_over: false,
         next_index: 1
       }
     }
   end
 
-  def handle_call({:submit_word, word, player_id}, _from, game_state) do
+  def handle_call({:submit_word, word, player_id}, _from, state) do
     cond do
-      word_used_previously(game_state.wordlist, word) ->
-        {:reply, {:error, "Word already played"}, game_state}
-      invalid_word(word) ->
-        {:reply, {:error, "Invalid word"}, game_state}
-      game_state.game_over ->
-        {:reply, {:error, "Game Over"}, game_state}
+      Wordlist.played?(state.wordlist, word) ->
+        {:reply, {:error, "Word already played"}, state}
+      Dictionary.invalid?(word) ->
+        {:reply, {:error, "Invalid word"}, state}
+      state.game_over ->
+        {:reply, {:error, "Game Over"}, state}
       true ->
-        player = find_player(String.to_integer(player_id), game_state.players)
-        new_board = update_board(word, player, game_state.board)
+        player = find_player(state.players, String.to_integer(player_id))
+        player_state = Player.get_state(player)
+        Board.add_word(state.board, word, player_state.index)
+        Wordlist.add(state.wordlist, word, player_state)
+        GamePlayers.update_scores(state.players, state.board)
+        if Board.completed?(state.board) do
+          GamePlayers.save_events(state.players, state.game_id)
+        end
         new_state =
           %{
-            game_state |
-              board: new_board,
-              players: update_players(game_state.players, new_board, game_state.game_id),
-              wordlist: update_wordlist(word, game_state.wordlist, player.index),
-              game_over: Board.completed?(new_board)
+            state |
+              game_over: Board.completed?(state.board)
           }
         {:reply, :ok, new_state}
     end
   end
 
-  def handle_call(:list_state, _from, game_state) do
-    {:reply, game_state, game_state}
+  def handle_call(:list_state, _from, state) do
+    {:reply, state, state}
   end
 
-  def handle_call(:finished?, _from, game_state) do
-    {:reply, game_state.game_over, game_state}
+  def handle_call(:display_state, _from, state) do
+    display_state =
+      %{
+        state |
+          board: Enum.chunk(Board.letters(state.board), 5),
+          wordlist: Wordlist.words(state.wordlist),
+          players: GamePlayers.display(state.players),
+      }
+    {:reply, display_state, state}
   end
 
-  def handle_call(:players, _from, game_state) do
-    {:reply, game_state.players, game_state}
-  end
-
-  def handle_call(:display_state, _from, game_state) do
-    board = game_state.board
-    |> Board.surrounded
-    |> Enum.chunk(5)
-    display_board = Map.put game_state, :board, board
-    {:reply, display_board, game_state}
-  end
-
-  def handle_cast({:add_player, player}, game_state) do
-    if find_player(player.id, game_state.players) do
-      { :noreply, game_state }
+  def handle_cast({:add_player, player}, state) do
+    if find_player(state.players, player.id) do
+      {:noreply, state}
     else
-      new_player = %Player{id: player.id, name: player.name, index: game_state.next_index}
-      new_player = Player.hydrate(new_player)
+      {:ok, new_player} = Library.PlayerServer.add_player(Map.put(player, :index, state.next_index))
+      GamePlayers.add_player(state.players, new_player)
       {
         :noreply,
         %{
-          game_state | players: game_state.players ++ [new_player], next_index: (game_state.next_index + 1)
+          state |
+            next_index: (state.next_index + 1)
         }
       }
     end
   end
 
-  def handle_cast({:remove_player, player}, game_state) do
+  def handle_cast({:remove_player, player}, state) do
     {
       :noreply,
       %{
-        game_state | players: remove_player_from_state(game_state.players, player)
+        state | players: GamePlayers.remove_player(state.players, player)
       }
     }
   end
 
-  def handle_cast(:new_game, game_state) do
+  def handle_cast(:new_game, state) do
+    Board.new_board(state.board)
+    Wordlist.clear(state.wordlist)
+    GamePlayers.clear_scores(state.players)
     {
       :noreply,
       %{
-        game_state |
+        state |
           game_id: Ecto.UUID.generate,
-          board: Board.generate,
-          players: clear_scores(game_state.players),
-          wordlist: [],
           game_over: false
       }
     }
   end
 
-  defp remove_player_from_state(all_players, player) do
-    Enum.reject(all_players, &(&1.id == player.id))
+  def handle_call(:name, _from, state) do
+    {:reply, state[:name], state}
   end
 
-  defp update_board(word, player, board) do
-    word
-    |> Board.add_word(player.index, board)
-    |> Board.surrounded
+  defp find_player(players, id) do
+    GamePlayers.find_player(players, id)
   end
 
-  defp update_wordlist(word, wordlist, player_index) do
-    List.insert_at(wordlist, 0, %{word: word_string(word), played_by: player_index})
-  end
-
-  defp word_string(letters) do
-    letters
-    |> Enum.reduce("", fn(letter, acc) ->
-      acc <> letter.letter
-    end)
-  end
-
-  defp find_player(id, players) do
-    players
-    |> Enum.find(&(&1.id == id))
-  end
-
-  defp word_used_previously(wordlist, letters) do
-    Enum.any?(wordlist, &(&1.word == word_string letters))
-  end
-
-  defp invalid_word(letters) do
-    case Dictionary.check_word word_string(letters) do
-      {:invalid, _} -> true
-      _ -> false
-    end
-  end
-
-  defp clear_scores(players) do
-    players
-    |> Enum.map(&Map.put(&1, :score, 0))
-  end
-
-  defp update_scores(players, board) do
-    players
-    |> Enum.map(fn(player) ->
-      %{player | score: Board.letter_count(board, player.index) }
-    end)
-    |> Enum.sort(&(&1.score > &2.score))
-  end
-
-  def save_events(players, game_id) do
-    players
-    |> Enum.map(&Player.save_event(&1, List.first(players), game_id))
-  end
-
-  def update_players(players, board, game_id) do
-    new_players = update_scores(players, board)
-    if Board.completed?(board) do
-      save_events(new_players, game_id)
-    else
-      new_players
-    end
-  end
 
 end

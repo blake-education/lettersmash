@@ -13414,7 +13414,7 @@ var elmApp = Elm.GameBoard.embed(elmDiv);
 //elmApp.ports.boardState.send(initialState.boardState);
 
 // CHANNELS
-var channel = _socket2.default.channel("game:new", {});
+var channel = _socket2.default.channel("game:game1", {});
 channel.join().receive("ok", function (resp) {
   console.log("Joined successfully", resp);
   channel.push("board_state");
