@@ -1,0 +1,22 @@
+" elixir plugins
+call remote#host#RegisterPlugin('elixir', '/Users/martin/.vim/plugged/elixir.nvim/rplugin/elixir/elixir_plugin.ex', [
+      \ {'sync': 1, 'name': 'ElixirComplete', 'opts': {'eval': '[col(''.''),getline(''.'')]'}, 'type': 'function'},
+      \ {'sync': 1, 'name': 'ElixirExec', 'opts': {'bang': '', 'range': '%'}, 'type': 'command'},
+      \ {'sync': 0, 'name': 'MixLoad', 'opts': {'eval': '[expand(''%:p:h'')]'}, 'type': 'command'},
+      \ {'sync': 0, 'name': 'MixStart', 'opts': {'nargs': '*'}, 'type': 'command'},
+      \ {'sync': 0, 'name': 'MixStop', 'opts': {'nargs': '*'}, 'type': 'command'},
+     \ ])
+
+
+" python3 plugins
+call remote#host#RegisterPlugin('python3', '/Users/martin/.vim/plugged/deoplete.nvim/rplugin/python3/deoplete', [
+      \ {'sync': v:true, 'name': '_deoplete', 'opts': {}, 'type': 'function'},
+     \ ])
+
+
+" ruby plugins
+
+
+" python plugins
+
+

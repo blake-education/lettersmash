@@ -53,7 +53,7 @@ defmodule Library.GamePlayers do
 
   def handle_call({:find_player, id}, _from, state) do
     player = state
-    |> Enum.find(fn(p) -> Player.id(p) == id end)
+    |> Enum.find(&(Player.id(&1) == id))
     {:reply, player, state}
   end
 
@@ -65,19 +65,15 @@ defmodule Library.GamePlayers do
 
   def handle_call(:display, _from, state) do
     players = state
-    |> Enum.map(fn(player) -> Player.get_state(player) end)
-    |> Enum.sort(&(&1.score > &2.score))
+    |> Enum.map(&(Player.get_state(&1)))
     {:reply, players, state}
   end
 
   def handle_cast({:update_scores, board}, state) do
-    state
-    |> Enum.map(fn(player) ->
-      index = Player.get_state(player).index
-      count = Board.letters_owned(board, index)
-      Player.update_score(player, count)
-    end)
-    {:noreply, state}
+    new_state = state
+    |> add_scores(board)
+    |> sort
+    {:noreply, new_state}
   end
 
   def handle_cast({:save_events, game_id}, state) do
@@ -86,4 +82,31 @@ defmodule Library.GamePlayers do
     {:noreply, state}
   end
 
+  defp add_scores(players, board) do
+    players
+    |> Enum.map(fn(player) ->
+      index = Player.get_state(player).index
+      score = Board.letters_owned(board, index)
+      Player.update_score(player, score)
+    end)
+  end
+
+  defp sort(state) do
+    state
+    |> Enum.sort(&(Player.get_state(&1).score > Player.get_state(&2).score))
+  end
+
+  defp winners(players) do
+    top_score = top_score players
+    players
+    |> Enum.filter(&(Player.get_state(&1).score == top_score))
+  end
+
+  defp top_score(players) do
+    player = players
+    |> sort
+    |> List.first
+    |> Player.get_state
+    player.score
+  end
 end
