@@ -39,6 +39,15 @@ defmodule Library.GameServer do
     |> Enum.map(fn({_, child, _, _}) -> child end)
   end
 
+  @doc """
+  returns all Games
+  """
+  def game_names do
+    __MODULE__
+    |> Supervisor.which_children
+    |> Enum.map(fn({_, child, _, _}) -> Game.name(child) end)
+  end
+
   ###
   # Supervisor API
   ###

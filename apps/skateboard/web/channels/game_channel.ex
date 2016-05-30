@@ -34,9 +34,9 @@ defmodule Skateboard.GameChannel do
     {:reply, :ok, socket}
   end
 
-  def handle_in("new_game", payload, socket) do
+  def handle_in("new_board", payload, socket) do
     game = find_or_create_game(socket.assigns.game_name)
-    Game.new_game(game)
+    Game.new_board(game)
     broadcast_state(socket)
     {:reply, {:ok, payload}, socket}
   end
@@ -56,6 +56,7 @@ defmodule Skateboard.GameChannel do
   end
 
   defp find_or_create_game(name) do
+    IO.inspect name
     game = GameServer.find_game name
     unless game do
       {:ok, game} = GameServer.add_game(name)

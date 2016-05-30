@@ -1,1 +1,2 @@
+<!-- inject the logged in user info into the page -->
 <div id="elm-container"></div>

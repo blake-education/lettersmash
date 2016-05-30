@@ -23,43 +23,66 @@ import socket from "./socket"
 const elmDiv = document.getElementById('elm-container');
 const elmApp = Elm.GameBoard.embed(elmDiv);
 
-/* we will do this via channels eventually*/
-//elmApp.ports.boardState.send(initialState.boardState);
-
-// CHANNELS
-let channel = socket.channel("game:game1", {})
+// lobby channel
+let channel = socket.channel("lobby", {})
 channel.join()
   .receive("ok", resp => {
-    console.log("Joined successfully", resp);
-    channel.push("board_state")
+    console.log("Lobby joined successfully", resp);
+    elmApp.ports.navigate.send("#/lobby");
+    channel.push("game_list");
+    elmApp.ports.newGame.subscribe( function(game_name) {
+      console.log("New game " + game_name);
+      channel.push("new_game");
+    });
+    elmApp.ports.joinGame.subscribe( function(game_name) {
+      console.log("Joining game " + game_name);
+      joinGame(game_name);
+      channel.push("join_game", game_name);
+      elmApp.ports.navigate.send("/#/game");
+    });
+    channel.on("games", games => {
+      console.log("games: ", games);
+      elmApp.ports.games.send(games.games);
+    });
   })
   .receive("error", resp => { console.log("Unable to join", resp) })
 
-channel.on("board_state", board_state => {
-  console.log("board state: ", board_state);
-  elmApp.ports.boardState.send(board_state);
-})
+function joinGame(name) {
+  // Game channel
+  let channel = socket.channel("game:" + name, {})
+  channel.join()
+    .receive("ok", resp => {
+      console.log("Joined successfully", resp);
+      elmApp.ports.navigate.send("game");
+      channel.push("board_state")
+    })
+    .receive("error", resp => { console.log("Unable to join", resp) })
 
-channel.on("game_over", data => {
-  console.log("game_over: ", data);
-  elmApp.ports.gameOver.send(data.message);
-})
+  channel.on("board_state", board_state => {
+    console.log("board state: ", board_state);
+    elmApp.ports.boardState.send(board_state);
+  })
 
-channel.on("submission_successful", data => {
-  console.log("submission_successful: ", data);
-  elmApp.ports.submitSuccess.send(data.message);
-})
+  channel.on("game_over", data => {
+    console.log("game_over: ", data);
+    elmApp.ports.gameOver.send(data.message);
+  })
 
-channel.on("submission_failed", data => {
-  console.log("submission_failed: ", data);
-  elmApp.ports.submitFailed.send(data.message);
-})
+  channel.on("submission_successful", data => {
+    console.log("submission_successful: ", data);
+    elmApp.ports.submitSuccess.send(data.message);
+  })
 
-elmApp.ports.submit.subscribe( function(letters) {
-  channel.push("submit_word", letters);
-});
+  channel.on("submission_failed", data => {
+    console.log("submission_failed: ", data);
+    elmApp.ports.submitFailed.send(data.message);
+  })
 
-elmApp.ports.requestNewGame.subscribe( function(message) {
-  channel.push("new_game", {message: message});
-});
+  elmApp.ports.submit.subscribe( function(letters) {
+    channel.push("submit_word", letters);
+  });
 
+  elmApp.ports.newBoard.subscribe( function(message) {
+    channel.push("new_board", {message: message});
+  });
+}

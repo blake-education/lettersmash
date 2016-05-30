@@ -1,0 +1,7 @@
+<!-- inject the logged in user info into the page -->
+<%= content_tag :div, id: "user",
+  data: [id: @current_user.id, name: @current_user.username] do %>
+<% end %>
+
+<div id="elm-container"></div>
+

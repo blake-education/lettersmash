@@ -30,11 +30,10 @@ defmodule Library.GamePlayersTest do
   end
 
   test "can update player scores", %{game_players: game_players} do
-    #player = PlayerServer.find_or_create_player(%{id: 57, name: "tom", index: 3})
-    #players = GamePlayers.add_player(game_players, player)
-    #GamePlayers.update_scores(game_players, board)
-    #|> Enum.map(fn(player) -> assert Player.get_state(player).score == 0 end)
-    flunk "implement me!"
+    player = PlayerServer.find_or_create_player(%{id: 57, name: "tom", index: 3})
+    players = GamePlayers.add_player(game_players, player)
+    GamePlayers.update_scores(game_players, board)
+    |> Enum.map(fn(player) -> assert Player.get_state(player).score == 0 end)
   end
 
   test "can save events", %{game_players: game_players} do

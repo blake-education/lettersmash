@@ -1,5 +1,7 @@
 port module GameBoard exposing (..)
 
+import Debug exposing (..)
+import Types exposing (..)
 import Actions exposing (..)
 import Models exposing (..)
 import Views exposing (..)
@@ -8,20 +10,22 @@ import Html.Attributes exposing (..)
 import Html.App as Html
 import String
 import List exposing (reverse, member, drop)
+import Navigation exposing (..)
 
 
 main =
-  Html.program
+  Navigation.program urlParser
     { init = init
     , update = update
     , view = view
+    , urlUpdate = urlUpdate
     , subscriptions = subscriptions
     }
 
 
-init : ( Model, Cmd Msg )
-init =
-  ( initialModel, Cmd.none )
+init : String -> ( Model, Cmd Msg )
+init url =
+  urlUpdate url initialModel
 
 
 -- UPDATE
@@ -37,16 +41,35 @@ appendLetter letter candidate =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
   case msg of
-    Submit ->
+    Navigate url ->
       ( model
-      , submit model.candidate
+      , newUrl url
       )
 
-    RequestNewGame ->
+    BackToLobby ->
       ( model
-      , requestNewGame ""
+      , newUrl "#/lobby"
       )
 
+    GamesList games ->
+      ( { model | games = games }
+      , Cmd.none
+      )
+
+    NewBoard ->
+      ( model
+      , newBoard ""
+      )
+
+    JoinGame gameName ->
+      ( model
+      , joinGame gameName
+      )
+
+    UpdateBoard boardState ->
+      ( { model | boardState = boardState }
+      , Cmd.none
+      )
 
     Select letter ->
       ( { model | candidate = appendLetter letter model.candidate }
@@ -67,9 +90,9 @@ update msg model =
       , Cmd.none
       )
 
-    UpdateBoard boardState ->
-      ( { model | boardState = boardState }
-      , Cmd.none
+    Submit ->
+      ( model
+      , submit model.candidate
       )
 
     SubmitSuccess status ->
@@ -82,6 +105,11 @@ update msg model =
       , Cmd.none
       )
 
+    CreateGame ->
+      ( model
+      , newGame "test"
+      )
+
     _ ->
       ( model
       , Cmd.none
@@ -91,17 +119,21 @@ update msg model =
 
 -- outgoing ports
 
+port newGame : String -> Cmd msg
+port joinGame : String -> Cmd msg
+port newBoard : String -> Cmd msg
 port submit : List Letter -> Cmd msg
-port requestNewGame : String -> Cmd msg
 
 
 -- incoming ports
 
 
+port games : (List Game -> msg) -> Sub msg
 port boardState : (BoardState -> msg) -> Sub msg
 port gameOver : (String -> msg) -> Sub msg
 port submitSuccess : (String -> msg) -> Sub msg
 port submitFailed : (String -> msg) -> Sub msg
+port navigate : (String -> msg) -> Sub msg
 
 
 subscriptions : Model -> Sub Msg
@@ -111,5 +143,29 @@ subscriptions model =
     , submitSuccess SubmitSuccess
     , submitFailed SubmitFailed
     , gameOver GameOver
+    , games GamesList
+    , navigate Navigate
     ]
 
+urlUpdate : String -> Model -> ( Model, Cmd Msg )
+urlUpdate url model =
+    if (log "url" url) == "game" then
+        ( { model | currentPage = GamePage }, Cmd.none )
+    else
+        ( { model | currentPage = LobbyPage }, Cmd.none )
+    --else
+        --( { model | currentPage = SplashPage }, Cmd.none )
+
+
+
+-- URL PARSERS - check out evancz/url-parser for fancier URL parsing
+
+
+fromUrl : String -> String
+fromUrl url =
+    String.dropLeft 2 url
+
+
+urlParser : Navigation.Parser String
+urlParser =
+    Navigation.makeParser (fromUrl << .hash)

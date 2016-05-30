@@ -1,6 +1,6 @@
 defmodule Library.Game do
   use GenServer
-  alias Library.{Board,Dictionary,Player,Wordlist,GamePlayers}
+  alias Library.{GameServer,Board,Dictionary,Player,Wordlist,GamePlayers,Game}
 
   @moduledoc """
 
@@ -27,8 +27,8 @@ defmodule Library.Game do
     GenServer.call(pid, {:submit_word, word, player})
   end
 
-  def new_game(pid) do
-    GenServer.cast(pid, :new_game)
+  def new_board(pid) do
+    GenServer.cast(pid, :new_board)
   end
 
   def add_player(pid, player) do
@@ -58,8 +58,9 @@ defmodule Library.Game do
         board: board,
         wordlist: wordlist,
         players: game_players,
-        game_over: false,
-        next_index: 1
+        game_over: Board.completed?(board),
+        next_index: 1,
+        games: []
       }
     }
   end
@@ -106,7 +107,7 @@ defmodule Library.Game do
     if find_player(state.players, player.id) do
       {:noreply, state}
     else
-      {:ok, new_player} = Library.PlayerServer.add_player(Map.put(player, :index, state.next_index))
+      new_player = Library.PlayerServer.find_or_create_player(Map.put(player, :index, state.next_index))
       GamePlayers.add_player(state.players, new_player)
       {
         :noreply,
@@ -127,7 +128,7 @@ defmodule Library.Game do
     }
   end
 
-  def handle_cast(:new_game, state) do
+  def handle_cast(:new_board, state) do
     Board.new_board(state.board)
     Wordlist.clear(state.wordlist)
     GamePlayers.clear_scores(state.players)
@@ -136,7 +137,7 @@ defmodule Library.Game do
       %{
         state |
           game_id: Ecto.UUID.generate,
-          game_over: false
+          game_over: Board.completed?(state.board)
       }
     }
   end

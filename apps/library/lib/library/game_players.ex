@@ -70,10 +70,8 @@ defmodule Library.GamePlayers do
   end
 
   def handle_cast({:update_scores, board}, state) do
-    new_state = state
-    |> add_scores(board)
-    |> sort
-    {:noreply, new_state}
+    add_scores(state, board)
+    {:noreply, sort(state)}
   end
 
   def handle_cast({:save_events, game_id}, state) do

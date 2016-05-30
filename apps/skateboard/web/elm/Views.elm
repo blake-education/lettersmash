@@ -1,5 +1,7 @@
 module Views exposing (..)
 
+import Debug exposing (..)
+import Types exposing (..)
 import Actions exposing (..)
 import Models exposing (..)
 import Html exposing (..)
@@ -26,9 +28,24 @@ colors =
   , "#ff1654"
   ]
 
-
 view : Model -> Html Msg
 view model =
+  case (log "model.currentPage" model.currentPage) of
+    LobbyPage ->
+      lobbyView model.games
+
+    GamePage ->
+      gameView model
+
+    --SplashPage ->
+      --div [] [ Html.App.map SplashMsg SplashView.view ]
+
+    _ ->
+        h1 [] [ text "Page not implemented!" ]
+
+
+gameView : Model -> Html Msg
+gameView model =
   div
     [ class "outer"]
     [ div
@@ -46,15 +63,25 @@ view model =
       , div
         [ class "col-md-4" ]
         [ button
-          [ class "btn btn", disabled (not model.boardState.game_over), Events.onClick RequestNewGame ]
-          [ text "New Game" ]
+          [ class "btn btn-primary btn-default", disabled (not model.boardState.game_over), Events.onClick NewBoard ]
+          [ text "Play again" ]
+        , button
+          [ class "btn", disabled (not model.boardState.game_over), Events.onClick BackToLobby ]
+          [ text "Back to Lobby" ]
         ]
     ]
     , div
       [ class "row" ]
       [ div
         [ class "board col-md-12" ]
-        (List.map (boardRow model.candidate) model.boardState.board)
+        [ div
+          []
+          [ h2 [] [text "Game Name"] ]
+
+        , div
+          []
+          (List.map (boardRow model.candidate) model.boardState.board)
+        ]
       ]
     , buttons model
     , div
@@ -186,8 +213,7 @@ flash model =
     span [] []
   else
     div
-      [ class "col-md-12 alert alert-warning"
-      ]
+      [ class "col-md-12 alert alert-warning" ]
       [ text model.errorMessage ]
 
 
@@ -202,3 +228,24 @@ colourFromList index =
 letterSelected : Letter -> Candidate ->  Bool
 letterSelected letter candidate =
   List.any (\c -> letter.id == c.id) candidate
+
+lobbyView : List Game -> Html Msg
+lobbyView games =
+  div []
+    [
+      h2 [] [text ("Games")]
+      , div [] (List.map listGame games)
+      , button
+        [ class "btn", Events.onClick CreateGame]
+        [ text "Create Game" ]
+    ]
+
+listGame : Game -> Html Msg
+listGame game =
+  p
+    []
+    [ button
+        [ class "btn", Events.onClick (JoinGame game.name)]
+        --[ class "btn"]
+        [text ("Join " ++ toString (game.name))]
+    ]

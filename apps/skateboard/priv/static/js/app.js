@@ -3199,10 +3199,11 @@ function toEffect(isCmd, home, taggers, value)
 {
 	function applyTaggers(x)
 	{
-		while (taggers)
+		var temp = taggers;
+		while (temp)
 		{
-			x = taggers.tagger(x);
-			taggers = taggers.rest;
+			x = temp.tagger(x);
+			temp = temp.rest;
 		}
 		return x;
 	}
@@ -3698,6 +3699,10 @@ var _elm_lang$core$Platform_Sub$none = _elm_lang$core$Platform_Sub$batch(
 var _elm_lang$core$Platform_Sub$map = _elm_lang$core$Native_Platform.map;
 var _elm_lang$core$Platform_Sub$Sub = {ctor: 'Sub'};
 
+var _blake_education$lettersmash$Types$NotImplementedPage = {ctor: 'NotImplementedPage'};
+var _blake_education$lettersmash$Types$GamePage = {ctor: 'GamePage'};
+var _blake_education$lettersmash$Types$LobbyPage = {ctor: 'LobbyPage'};
+
 var _blake_education$lettersmash$Models$initialModel = {
 	candidate: _elm_lang$core$Native_List.fromArray(
 		[]),
@@ -3710,7 +3715,13 @@ var _blake_education$lettersmash$Models$initialModel = {
 			[]),
 		game_over: false
 	},
-	errorMessage: ''
+	errorMessage: '',
+	currentPage: _blake_education$lettersmash$Types$LobbyPage,
+	games: _elm_lang$core$Native_List.fromArray(
+		[])
+};
+var _blake_education$lettersmash$Models$Game = function (a) {
+	return {name: a};
 };
 var _blake_education$lettersmash$Models$Letter = F4(
 	function (a, b, c, d) {
@@ -3728,12 +3739,17 @@ var _blake_education$lettersmash$Models$BoardState = F4(
 	function (a, b, c, d) {
 		return {board: a, players: b, wordlist: c, game_over: d};
 	});
-var _blake_education$lettersmash$Models$Model = F3(
-	function (a, b, c) {
-		return {candidate: a, boardState: b, errorMessage: c};
+var _blake_education$lettersmash$Models$Model = F5(
+	function (a, b, c, d, e) {
+		return {candidate: a, boardState: b, errorMessage: c, currentPage: d, games: e};
 	});
 
-var _blake_education$lettersmash$Actions$RequestNewGame = {ctor: 'RequestNewGame'};
+var _blake_education$lettersmash$Actions$Navigate = function (a) {
+	return {ctor: 'Navigate', _0: a};
+};
+var _blake_education$lettersmash$Actions$UpdateBoard = function (a) {
+	return {ctor: 'UpdateBoard', _0: a};
+};
 var _blake_education$lettersmash$Actions$SubmitFailed = function (a) {
 	return {ctor: 'SubmitFailed', _0: a};
 };
@@ -3743,14 +3759,20 @@ var _blake_education$lettersmash$Actions$SubmitSuccess = function (a) {
 var _blake_education$lettersmash$Actions$GameOver = function (a) {
 	return {ctor: 'GameOver', _0: a};
 };
-var _blake_education$lettersmash$Actions$UpdateBoard = function (a) {
-	return {ctor: 'UpdateBoard', _0: a};
-};
 var _blake_education$lettersmash$Actions$Backspace = {ctor: 'Backspace'};
 var _blake_education$lettersmash$Actions$Clear = {ctor: 'Clear'};
 var _blake_education$lettersmash$Actions$Submit = {ctor: 'Submit'};
 var _blake_education$lettersmash$Actions$Select = function (a) {
 	return {ctor: 'Select', _0: a};
+};
+var _blake_education$lettersmash$Actions$BackToLobby = {ctor: 'BackToLobby'};
+var _blake_education$lettersmash$Actions$NewBoard = {ctor: 'NewBoard'};
+var _blake_education$lettersmash$Actions$JoinGame = function (a) {
+	return {ctor: 'JoinGame', _0: a};
+};
+var _blake_education$lettersmash$Actions$CreateGame = {ctor: 'CreateGame'};
+var _blake_education$lettersmash$Actions$GamesList = function (a) {
+	return {ctor: 'GamesList', _0: a};
 };
 var _blake_education$lettersmash$Actions$NoOp = {ctor: 'NoOp'};
 
@@ -6313,7 +6335,10 @@ function badOneOf(problems)
 	return { tag: 'oneOf', problems: problems };
 }
 
-var bad = { tag: 'fail' };
+function bad(msg)
+{
+	return { tag: 'fail', msg: msg };
+}
 
 function badToString(problem)
 {
@@ -6349,7 +6374,8 @@ function badToString(problem)
 
 			case 'fail':
 				return 'I ran into a `fail` decoder'
-					+ (context === '_' ? '' : ' at ' + context);
+					+ (context === '_' ? '' : ' at ' + context)
+					+ ': ' + problem.msg;
 		}
 	}
 }
@@ -6396,14 +6422,19 @@ function runHelp(decoder, value)
 				: badPrimitive('a Bool', value);
 
 		case 'int':
-			var isNotInt =
-				typeof value !== 'number'
-				|| !(-2147483647 < value && value < 2147483647 && (value | 0) === value)
-				|| !(isFinite(value) && !(value % 1));
+			if (typeof value !== 'number') {
+				return badPrimitive('an Int', value);
+			}
 
-			return isNotInt
-				? badPrimitive('an Int', value)
-				: ok(value);
+			if (-2147483647 < value && value < 2147483647 && (value | 0) === value) {
+				return ok(value);
+			}
+
+			if (isFinite(value) && !(value % 1)) {
+				return ok(value);
+			}
+
+			return badPrimitive('an Int', value);
 
 		case 'float':
 			return (typeof value === 'number')
@@ -6483,7 +6514,7 @@ function runHelp(decoder, value)
 		case 'key-value':
 			if (typeof value !== 'object' || value === null || value instanceof Array)
 			{
-				return err('an object', value);
+				return badPrimitive('an object', value);
 			}
 
 			var keyValuePairs = _elm_lang$core$Native_List.Nil;
@@ -6572,7 +6603,7 @@ function runHelp(decoder, value)
 			return badOneOf(errors);
 
 		case 'fail':
-			return bad;
+			return bad(decoder.msg);
 
 		case 'succeed':
 			return ok(decoder.msg);
@@ -7110,11 +7141,24 @@ function render(vNode, eventNode)
 			return render(vNode.node, eventNode);
 
 		case 'tagger':
+			var subNode = vNode.node;
+			var tagger = vNode.tagger;
+		
+			while (subNode.type === 'tagger')
+			{
+				typeof tagger !== 'object'
+					? tagger = [tagger, subNode.tagger]
+					: tagger.push(subNode.tagger);
+
+				subNode = subNode.node;
+			}
+            
 			var subEventRoot = {
-				tagger: vNode.tagger,
+				tagger: tagger,
 				parent: eventNode
 			};
-			var domNode = render(vNode.node, subEventRoot);
+			
+			var domNode = render(subNode, subEventRoot);
 			domNode.elm_event_node_ref = subEventRoot;
 			return domNode;
 
@@ -7209,6 +7253,7 @@ function applyEvents(domNode, eventNode, events)
 		if (typeof value === 'undefined')
 		{
 			domNode.removeEventListener(key, handler);
+			allHandlers[key] = undefined;
 		}
 		else if (typeof handler === 'undefined')
 		{
@@ -7524,10 +7569,7 @@ function diffFacts(a, b, category)
 				(category === STYLE_KEY)
 					? ''
 					:
-				(category === EVENT_KEY)
-					? null
-					:
-				(category === ATTR_KEY)
+				(category === EVENT_KEY || category === ATTR_KEY)
 					? undefined
 					:
 				{ namespace: a[aKey].namespace, value: undefined };
@@ -7642,7 +7684,14 @@ function addDomNodesHelp(domNode, vNode, patches, i, low, high, eventNode)
 	switch (vNode.type)
 	{
 		case 'tagger':
-			return addDomNodesHelp(domNode, vNode.node, patches, i, low + 1, high, domNode.elm_event_node_ref);
+			var subNode = vNode.node;
+            
+			while (subNode.type === "tagger")
+			{
+				subNode = subNode.node;
+			}
+            
+			return addDomNodesHelp(domNode, subNode, patches, i, low + 1, high, domNode.elm_event_node_ref);
 
 		case 'node':
 			var vChildren = vNode.children;
@@ -7754,10 +7803,9 @@ function redraw(domNode, vNode, eventNode)
 	var parentNode = domNode.parentNode;
 	var newNode = render(vNode, eventNode);
 
-	var ref = domNode.elm_event_node_ref
-	if (typeof ref !== 'undefined')
+	if (typeof newNode.elm_event_node_ref === 'undefined')
 	{
-		newNode.elm_event_node_ref = ref;
+		newNode.elm_event_node_ref = domNode.elm_event_node_ref;
 	}
 
 	if (parentNode && newNode !== domNode)
@@ -8385,6 +8433,64 @@ var _elm_lang$html$Html_Events$Options = F2(
 		return {stopPropagation: a, preventDefault: b};
 	});
 
+var _blake_education$lettersmash$Views$listGame = function (game) {
+	return A2(
+		_elm_lang$html$Html$p,
+		_elm_lang$core$Native_List.fromArray(
+			[]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				A2(
+				_elm_lang$html$Html$button,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$class('btn'),
+						_elm_lang$html$Html_Events$onClick(
+						_blake_education$lettersmash$Actions$JoinGame(game.name))
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text(
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							'Join ',
+							_elm_lang$core$Basics$toString(game.name)))
+					]))
+			]));
+};
+var _blake_education$lettersmash$Views$lobbyView = function (games) {
+	return A2(
+		_elm_lang$html$Html$div,
+		_elm_lang$core$Native_List.fromArray(
+			[]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				A2(
+				_elm_lang$html$Html$h2,
+				_elm_lang$core$Native_List.fromArray(
+					[]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text('Games')
+					])),
+				A2(
+				_elm_lang$html$Html$div,
+				_elm_lang$core$Native_List.fromArray(
+					[]),
+				A2(_elm_lang$core$List$map, _blake_education$lettersmash$Views$listGame, games)),
+				A2(
+				_elm_lang$html$Html$button,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$class('btn'),
+						_elm_lang$html$Html_Events$onClick(_blake_education$lettersmash$Actions$CreateGame)
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text('Create Game')
+					]))
+			]));
+};
 var _blake_education$lettersmash$Views$letterSelected = F2(
 	function (letter, candidate) {
 		return A2(
@@ -8680,7 +8786,7 @@ var _blake_education$lettersmash$Views$candidateLetterView = function (letter) {
 				_elm_lang$html$Html$text(letter.letter)
 			]));
 };
-var _blake_education$lettersmash$Views$view = function (model) {
+var _blake_education$lettersmash$Views$gameView = function (model) {
 	return A2(
 		_elm_lang$html$Html$div,
 		_elm_lang$core$Native_List.fromArray(
@@ -8745,14 +8851,27 @@ var _blake_education$lettersmash$Views$view = function (model) {
 								_elm_lang$html$Html$button,
 								_elm_lang$core$Native_List.fromArray(
 									[
-										_elm_lang$html$Html_Attributes$class('btn btn'),
+										_elm_lang$html$Html_Attributes$class('btn btn-primary btn-default'),
 										_elm_lang$html$Html_Attributes$disabled(
 										_elm_lang$core$Basics$not(model.boardState.game_over)),
-										_elm_lang$html$Html_Events$onClick(_blake_education$lettersmash$Actions$RequestNewGame)
+										_elm_lang$html$Html_Events$onClick(_blake_education$lettersmash$Actions$NewBoard)
 									]),
 								_elm_lang$core$Native_List.fromArray(
 									[
-										_elm_lang$html$Html$text('New Game')
+										_elm_lang$html$Html$text('Play again')
+									])),
+								A2(
+								_elm_lang$html$Html$button,
+								_elm_lang$core$Native_List.fromArray(
+									[
+										_elm_lang$html$Html_Attributes$class('btn'),
+										_elm_lang$html$Html_Attributes$disabled(
+										_elm_lang$core$Basics$not(model.boardState.game_over)),
+										_elm_lang$html$Html_Events$onClick(_blake_education$lettersmash$Actions$BackToLobby)
+									]),
+								_elm_lang$core$Native_List.fromArray(
+									[
+										_elm_lang$html$Html$text('Back to Lobby')
 									]))
 							]))
 					])),
@@ -8770,10 +8889,32 @@ var _blake_education$lettersmash$Views$view = function (model) {
 							[
 								_elm_lang$html$Html_Attributes$class('board col-md-12')
 							]),
-						A2(
-							_elm_lang$core$List$map,
-							_blake_education$lettersmash$Views$boardRow(model.candidate),
-							model.boardState.board))
+						_elm_lang$core$Native_List.fromArray(
+							[
+								A2(
+								_elm_lang$html$Html$div,
+								_elm_lang$core$Native_List.fromArray(
+									[]),
+								_elm_lang$core$Native_List.fromArray(
+									[
+										A2(
+										_elm_lang$html$Html$h2,
+										_elm_lang$core$Native_List.fromArray(
+											[]),
+										_elm_lang$core$Native_List.fromArray(
+											[
+												_elm_lang$html$Html$text('Game Name')
+											]))
+									])),
+								A2(
+								_elm_lang$html$Html$div,
+								_elm_lang$core$Native_List.fromArray(
+									[]),
+								A2(
+									_elm_lang$core$List$map,
+									_blake_education$lettersmash$Views$boardRow(model.candidate),
+									model.boardState.board))
+							]))
 					])),
 				_blake_education$lettersmash$Views$buttons(model),
 				A2(
@@ -8826,6 +8967,24 @@ var _blake_education$lettersmash$Views$view = function (model) {
 					]))
 			]));
 };
+var _blake_education$lettersmash$Views$view = function (model) {
+	var _p0 = A2(_elm_lang$core$Debug$log, 'model.currentPage', model.currentPage);
+	switch (_p0.ctor) {
+		case 'LobbyPage':
+			return _blake_education$lettersmash$Views$lobbyView(model.games);
+		case 'GamePage':
+			return _blake_education$lettersmash$Views$gameView(model);
+		default:
+			return A2(
+				_elm_lang$html$Html$h1,
+				_elm_lang$core$Native_List.fromArray(
+					[]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text('Page not implemented!')
+					]));
+	}
+};
 
 var _elm_lang$html$Html_App$programWithFlags = _elm_lang$virtual_dom$VirtualDom$programWithFlags;
 var _elm_lang$html$Html_App$program = function (app) {
@@ -8865,6 +9024,871 @@ var _elm_lang$html$Html_App$beginnerProgram = function (_p1) {
 };
 var _elm_lang$html$Html_App$map = _elm_lang$virtual_dom$VirtualDom$map;
 
+var _elm_lang$dom$Native_Dom = function() {
+
+function on(node)
+{
+	return function(eventName, decoder, toTask)
+	{
+		return _elm_lang$core$Native_Scheduler.nativeBinding(function(callback) {
+
+			function performTask(event)
+			{
+				var result = A2(_elm_lang$core$Json_Decode$decodeValue, decoder, event);
+				if (result.ctor === 'Ok')
+				{
+					_elm_lang$core$Native_Scheduler.rawSpawn(toTask(result._0));
+				}
+			}
+
+			node.addEventListener(eventName, performTask);
+
+			return function()
+			{
+				node.removeEventListener(eventName, performTask);
+			};
+		});
+	};
+}
+
+return {
+	onDocument: F3(on(document)),
+	onWindow: F3(on(window))
+};
+
+}();
+
+var _elm_lang$core$Task$onError = _elm_lang$core$Native_Scheduler.onError;
+var _elm_lang$core$Task$andThen = _elm_lang$core$Native_Scheduler.andThen;
+var _elm_lang$core$Task$spawnCmd = F2(
+	function (router, _p0) {
+		var _p1 = _p0;
+		return _elm_lang$core$Native_Scheduler.spawn(
+			A2(
+				_elm_lang$core$Task$andThen,
+				_p1._0,
+				_elm_lang$core$Platform$sendToApp(router)));
+	});
+var _elm_lang$core$Task$fail = _elm_lang$core$Native_Scheduler.fail;
+var _elm_lang$core$Task$mapError = F2(
+	function (f, task) {
+		return A2(
+			_elm_lang$core$Task$onError,
+			task,
+			function (err) {
+				return _elm_lang$core$Task$fail(
+					f(err));
+			});
+	});
+var _elm_lang$core$Task$succeed = _elm_lang$core$Native_Scheduler.succeed;
+var _elm_lang$core$Task$map = F2(
+	function (func, taskA) {
+		return A2(
+			_elm_lang$core$Task$andThen,
+			taskA,
+			function (a) {
+				return _elm_lang$core$Task$succeed(
+					func(a));
+			});
+	});
+var _elm_lang$core$Task$map2 = F3(
+	function (func, taskA, taskB) {
+		return A2(
+			_elm_lang$core$Task$andThen,
+			taskA,
+			function (a) {
+				return A2(
+					_elm_lang$core$Task$andThen,
+					taskB,
+					function (b) {
+						return _elm_lang$core$Task$succeed(
+							A2(func, a, b));
+					});
+			});
+	});
+var _elm_lang$core$Task$map3 = F4(
+	function (func, taskA, taskB, taskC) {
+		return A2(
+			_elm_lang$core$Task$andThen,
+			taskA,
+			function (a) {
+				return A2(
+					_elm_lang$core$Task$andThen,
+					taskB,
+					function (b) {
+						return A2(
+							_elm_lang$core$Task$andThen,
+							taskC,
+							function (c) {
+								return _elm_lang$core$Task$succeed(
+									A3(func, a, b, c));
+							});
+					});
+			});
+	});
+var _elm_lang$core$Task$map4 = F5(
+	function (func, taskA, taskB, taskC, taskD) {
+		return A2(
+			_elm_lang$core$Task$andThen,
+			taskA,
+			function (a) {
+				return A2(
+					_elm_lang$core$Task$andThen,
+					taskB,
+					function (b) {
+						return A2(
+							_elm_lang$core$Task$andThen,
+							taskC,
+							function (c) {
+								return A2(
+									_elm_lang$core$Task$andThen,
+									taskD,
+									function (d) {
+										return _elm_lang$core$Task$succeed(
+											A4(func, a, b, c, d));
+									});
+							});
+					});
+			});
+	});
+var _elm_lang$core$Task$map5 = F6(
+	function (func, taskA, taskB, taskC, taskD, taskE) {
+		return A2(
+			_elm_lang$core$Task$andThen,
+			taskA,
+			function (a) {
+				return A2(
+					_elm_lang$core$Task$andThen,
+					taskB,
+					function (b) {
+						return A2(
+							_elm_lang$core$Task$andThen,
+							taskC,
+							function (c) {
+								return A2(
+									_elm_lang$core$Task$andThen,
+									taskD,
+									function (d) {
+										return A2(
+											_elm_lang$core$Task$andThen,
+											taskE,
+											function (e) {
+												return _elm_lang$core$Task$succeed(
+													A5(func, a, b, c, d, e));
+											});
+									});
+							});
+					});
+			});
+	});
+var _elm_lang$core$Task$andMap = F2(
+	function (taskFunc, taskValue) {
+		return A2(
+			_elm_lang$core$Task$andThen,
+			taskFunc,
+			function (func) {
+				return A2(
+					_elm_lang$core$Task$andThen,
+					taskValue,
+					function (value) {
+						return _elm_lang$core$Task$succeed(
+							func(value));
+					});
+			});
+	});
+var _elm_lang$core$Task$sequence = function (tasks) {
+	var _p2 = tasks;
+	if (_p2.ctor === '[]') {
+		return _elm_lang$core$Task$succeed(
+			_elm_lang$core$Native_List.fromArray(
+				[]));
+	} else {
+		return A3(
+			_elm_lang$core$Task$map2,
+			F2(
+				function (x, y) {
+					return A2(_elm_lang$core$List_ops['::'], x, y);
+				}),
+			_p2._0,
+			_elm_lang$core$Task$sequence(_p2._1));
+	}
+};
+var _elm_lang$core$Task$onEffects = F3(
+	function (router, commands, state) {
+		return A2(
+			_elm_lang$core$Task$map,
+			function (_p3) {
+				return {ctor: '_Tuple0'};
+			},
+			_elm_lang$core$Task$sequence(
+				A2(
+					_elm_lang$core$List$map,
+					_elm_lang$core$Task$spawnCmd(router),
+					commands)));
+	});
+var _elm_lang$core$Task$toMaybe = function (task) {
+	return A2(
+		_elm_lang$core$Task$onError,
+		A2(_elm_lang$core$Task$map, _elm_lang$core$Maybe$Just, task),
+		function (_p4) {
+			return _elm_lang$core$Task$succeed(_elm_lang$core$Maybe$Nothing);
+		});
+};
+var _elm_lang$core$Task$fromMaybe = F2(
+	function ($default, maybe) {
+		var _p5 = maybe;
+		if (_p5.ctor === 'Just') {
+			return _elm_lang$core$Task$succeed(_p5._0);
+		} else {
+			return _elm_lang$core$Task$fail($default);
+		}
+	});
+var _elm_lang$core$Task$toResult = function (task) {
+	return A2(
+		_elm_lang$core$Task$onError,
+		A2(_elm_lang$core$Task$map, _elm_lang$core$Result$Ok, task),
+		function (msg) {
+			return _elm_lang$core$Task$succeed(
+				_elm_lang$core$Result$Err(msg));
+		});
+};
+var _elm_lang$core$Task$fromResult = function (result) {
+	var _p6 = result;
+	if (_p6.ctor === 'Ok') {
+		return _elm_lang$core$Task$succeed(_p6._0);
+	} else {
+		return _elm_lang$core$Task$fail(_p6._0);
+	}
+};
+var _elm_lang$core$Task$init = _elm_lang$core$Task$succeed(
+	{ctor: '_Tuple0'});
+var _elm_lang$core$Task$onSelfMsg = F3(
+	function (_p9, _p8, _p7) {
+		return _elm_lang$core$Task$succeed(
+			{ctor: '_Tuple0'});
+	});
+var _elm_lang$core$Task$command = _elm_lang$core$Native_Platform.leaf('Task');
+var _elm_lang$core$Task$T = function (a) {
+	return {ctor: 'T', _0: a};
+};
+var _elm_lang$core$Task$perform = F3(
+	function (onFail, onSuccess, task) {
+		return _elm_lang$core$Task$command(
+			_elm_lang$core$Task$T(
+				A2(
+					_elm_lang$core$Task$onError,
+					A2(_elm_lang$core$Task$map, onSuccess, task),
+					function (x) {
+						return _elm_lang$core$Task$succeed(
+							onFail(x));
+					})));
+	});
+var _elm_lang$core$Task$cmdMap = F2(
+	function (tagger, _p10) {
+		var _p11 = _p10;
+		return _elm_lang$core$Task$T(
+			A2(_elm_lang$core$Task$map, tagger, _p11._0));
+	});
+_elm_lang$core$Native_Platform.effectManagers['Task'] = {pkg: 'elm-lang/core', init: _elm_lang$core$Task$init, onEffects: _elm_lang$core$Task$onEffects, onSelfMsg: _elm_lang$core$Task$onSelfMsg, tag: 'cmd', cmdMap: _elm_lang$core$Task$cmdMap};
+
+var _elm_lang$dom$Dom_LowLevel$onWindow = _elm_lang$dom$Native_Dom.onWindow;
+var _elm_lang$dom$Dom_LowLevel$onDocument = _elm_lang$dom$Native_Dom.onDocument;
+
+var _elm_lang$navigation$Native_Navigation = function() {
+
+function go(n)
+{
+	return _elm_lang$core$Native_Scheduler.nativeBinding(function(callback)
+	{
+		if (n !== 0)
+		{
+			history.go(n);
+		}
+		callback(_elm_lang$core$Native_Scheduler.succeed(_elm_lang$core$Native_Utils.Tuple0));
+	});
+}
+
+function pushState(url)
+{
+	return _elm_lang$core$Native_Scheduler.nativeBinding(function(callback)
+	{
+		history.pushState({}, '', url);
+		callback(_elm_lang$core$Native_Scheduler.succeed(getLocation()));
+	});
+}
+
+function replaceState(url)
+{
+	return _elm_lang$core$Native_Scheduler.nativeBinding(function(callback)
+	{
+		history.replaceState({}, '', url);
+		callback(_elm_lang$core$Native_Scheduler.succeed(getLocation()));
+	});
+}
+
+function getLocation()
+{
+	var location = document.location;
+
+	return {
+		href: location.href,
+		host: location.host,
+		hostname: location.hostname,
+		protocol: location.protocol,
+		origin: location.origin,
+		port_: location.port,
+		pathname: location.pathname,
+		search: location.search,
+		hash: location.hash,
+		username: location.username,
+		password: location.password
+	};
+}
+
+
+return {
+	go: go,
+	pushState: pushState,
+	replaceState: replaceState,
+	getLocation: getLocation
+};
+
+}();
+
+//import Native.Scheduler //
+
+var _elm_lang$core$Native_Time = function() {
+
+var now = _elm_lang$core$Native_Scheduler.nativeBinding(function(callback)
+{
+	callback(_elm_lang$core$Native_Scheduler.succeed(Date.now()));
+});
+
+function setInterval_(interval, task)
+{
+	return _elm_lang$core$Native_Scheduler.nativeBinding(function(callback)
+	{
+		var id = setInterval(function() {
+			_elm_lang$core$Native_Scheduler.rawSpawn(task);
+		}, interval);
+
+		return function() { clearInterval(id); };
+	});
+}
+
+return {
+	now: now,
+	setInterval_: F2(setInterval_)
+};
+
+}();
+var _elm_lang$core$Time$setInterval = _elm_lang$core$Native_Time.setInterval_;
+var _elm_lang$core$Time$spawnHelp = F3(
+	function (router, intervals, processes) {
+		var _p0 = intervals;
+		if (_p0.ctor === '[]') {
+			return _elm_lang$core$Task$succeed(processes);
+		} else {
+			var _p1 = _p0._0;
+			return A2(
+				_elm_lang$core$Task$andThen,
+				_elm_lang$core$Native_Scheduler.spawn(
+					A2(
+						_elm_lang$core$Time$setInterval,
+						_p1,
+						A2(_elm_lang$core$Platform$sendToSelf, router, _p1))),
+				function (id) {
+					return A3(
+						_elm_lang$core$Time$spawnHelp,
+						router,
+						_p0._1,
+						A3(_elm_lang$core$Dict$insert, _p1, id, processes));
+				});
+		}
+	});
+var _elm_lang$core$Time$addMySub = F2(
+	function (_p2, state) {
+		var _p3 = _p2;
+		var _p6 = _p3._1;
+		var _p5 = _p3._0;
+		var _p4 = A2(_elm_lang$core$Dict$get, _p5, state);
+		if (_p4.ctor === 'Nothing') {
+			return A3(
+				_elm_lang$core$Dict$insert,
+				_p5,
+				_elm_lang$core$Native_List.fromArray(
+					[_p6]),
+				state);
+		} else {
+			return A3(
+				_elm_lang$core$Dict$insert,
+				_p5,
+				A2(_elm_lang$core$List_ops['::'], _p6, _p4._0),
+				state);
+		}
+	});
+var _elm_lang$core$Time$inMilliseconds = function (t) {
+	return t;
+};
+var _elm_lang$core$Time$millisecond = 1;
+var _elm_lang$core$Time$second = 1000 * _elm_lang$core$Time$millisecond;
+var _elm_lang$core$Time$minute = 60 * _elm_lang$core$Time$second;
+var _elm_lang$core$Time$hour = 60 * _elm_lang$core$Time$minute;
+var _elm_lang$core$Time$inHours = function (t) {
+	return t / _elm_lang$core$Time$hour;
+};
+var _elm_lang$core$Time$inMinutes = function (t) {
+	return t / _elm_lang$core$Time$minute;
+};
+var _elm_lang$core$Time$inSeconds = function (t) {
+	return t / _elm_lang$core$Time$second;
+};
+var _elm_lang$core$Time$now = _elm_lang$core$Native_Time.now;
+var _elm_lang$core$Time$onSelfMsg = F3(
+	function (router, interval, state) {
+		var _p7 = A2(_elm_lang$core$Dict$get, interval, state.taggers);
+		if (_p7.ctor === 'Nothing') {
+			return _elm_lang$core$Task$succeed(state);
+		} else {
+			return A2(
+				_elm_lang$core$Task$andThen,
+				_elm_lang$core$Time$now,
+				function (time) {
+					return A2(
+						_elm_lang$core$Task$andThen,
+						_elm_lang$core$Task$sequence(
+							A2(
+								_elm_lang$core$List$map,
+								function (tagger) {
+									return A2(
+										_elm_lang$core$Platform$sendToApp,
+										router,
+										tagger(time));
+								},
+								_p7._0)),
+						function (_p8) {
+							return _elm_lang$core$Task$succeed(state);
+						});
+				});
+		}
+	});
+var _elm_lang$core$Time$subscription = _elm_lang$core$Native_Platform.leaf('Time');
+var _elm_lang$core$Time$State = F2(
+	function (a, b) {
+		return {taggers: a, processes: b};
+	});
+var _elm_lang$core$Time$init = _elm_lang$core$Task$succeed(
+	A2(_elm_lang$core$Time$State, _elm_lang$core$Dict$empty, _elm_lang$core$Dict$empty));
+var _elm_lang$core$Time$onEffects = F3(
+	function (router, subs, _p9) {
+		var _p10 = _p9;
+		var rightStep = F3(
+			function (_p12, id, _p11) {
+				var _p13 = _p11;
+				return {
+					ctor: '_Tuple3',
+					_0: _p13._0,
+					_1: _p13._1,
+					_2: A2(
+						_elm_lang$core$Task$andThen,
+						_elm_lang$core$Native_Scheduler.kill(id),
+						function (_p14) {
+							return _p13._2;
+						})
+				};
+			});
+		var bothStep = F4(
+			function (interval, taggers, id, _p15) {
+				var _p16 = _p15;
+				return {
+					ctor: '_Tuple3',
+					_0: _p16._0,
+					_1: A3(_elm_lang$core$Dict$insert, interval, id, _p16._1),
+					_2: _p16._2
+				};
+			});
+		var leftStep = F3(
+			function (interval, taggers, _p17) {
+				var _p18 = _p17;
+				return {
+					ctor: '_Tuple3',
+					_0: A2(_elm_lang$core$List_ops['::'], interval, _p18._0),
+					_1: _p18._1,
+					_2: _p18._2
+				};
+			});
+		var newTaggers = A3(_elm_lang$core$List$foldl, _elm_lang$core$Time$addMySub, _elm_lang$core$Dict$empty, subs);
+		var _p19 = A6(
+			_elm_lang$core$Dict$merge,
+			leftStep,
+			bothStep,
+			rightStep,
+			newTaggers,
+			_p10.processes,
+			{
+				ctor: '_Tuple3',
+				_0: _elm_lang$core$Native_List.fromArray(
+					[]),
+				_1: _elm_lang$core$Dict$empty,
+				_2: _elm_lang$core$Task$succeed(
+					{ctor: '_Tuple0'})
+			});
+		var spawnList = _p19._0;
+		var existingDict = _p19._1;
+		var killTask = _p19._2;
+		return A2(
+			_elm_lang$core$Task$andThen,
+			killTask,
+			function (_p20) {
+				return A2(
+					_elm_lang$core$Task$andThen,
+					A3(_elm_lang$core$Time$spawnHelp, router, spawnList, existingDict),
+					function (newProcesses) {
+						return _elm_lang$core$Task$succeed(
+							A2(_elm_lang$core$Time$State, newTaggers, newProcesses));
+					});
+			});
+	});
+var _elm_lang$core$Time$Every = F2(
+	function (a, b) {
+		return {ctor: 'Every', _0: a, _1: b};
+	});
+var _elm_lang$core$Time$every = F2(
+	function (interval, tagger) {
+		return _elm_lang$core$Time$subscription(
+			A2(_elm_lang$core$Time$Every, interval, tagger));
+	});
+var _elm_lang$core$Time$subMap = F2(
+	function (f, _p21) {
+		var _p22 = _p21;
+		return A2(
+			_elm_lang$core$Time$Every,
+			_p22._0,
+			function (_p23) {
+				return f(
+					_p22._1(_p23));
+			});
+	});
+_elm_lang$core$Native_Platform.effectManagers['Time'] = {pkg: 'elm-lang/core', init: _elm_lang$core$Time$init, onEffects: _elm_lang$core$Time$onEffects, onSelfMsg: _elm_lang$core$Time$onSelfMsg, tag: 'sub', subMap: _elm_lang$core$Time$subMap};
+
+var _elm_lang$core$Process$kill = _elm_lang$core$Native_Scheduler.kill;
+var _elm_lang$core$Process$sleep = _elm_lang$core$Native_Scheduler.sleep;
+var _elm_lang$core$Process$spawn = _elm_lang$core$Native_Scheduler.spawn;
+
+var _elm_lang$navigation$Navigation$replaceState = _elm_lang$navigation$Native_Navigation.replaceState;
+var _elm_lang$navigation$Navigation$pushState = _elm_lang$navigation$Native_Navigation.pushState;
+var _elm_lang$navigation$Navigation$go = _elm_lang$navigation$Native_Navigation.go;
+var _elm_lang$navigation$Navigation$spawnPopState = function (router) {
+	return _elm_lang$core$Process$spawn(
+		A3(
+			_elm_lang$dom$Dom_LowLevel$onWindow,
+			'popstate',
+			_elm_lang$core$Json_Decode$value,
+			function (_p0) {
+				return A2(
+					_elm_lang$core$Platform$sendToSelf,
+					router,
+					_elm_lang$navigation$Native_Navigation.getLocation(
+						{ctor: '_Tuple0'}));
+			}));
+};
+var _elm_lang$navigation$Navigation_ops = _elm_lang$navigation$Navigation_ops || {};
+_elm_lang$navigation$Navigation_ops['&>'] = F2(
+	function (task1, task2) {
+		return A2(
+			_elm_lang$core$Task$andThen,
+			task1,
+			function (_p1) {
+				return task2;
+			});
+	});
+var _elm_lang$navigation$Navigation$notify = F3(
+	function (router, subs, location) {
+		var send = function (_p2) {
+			var _p3 = _p2;
+			return A2(
+				_elm_lang$core$Platform$sendToApp,
+				router,
+				_p3._0(location));
+		};
+		return A2(
+			_elm_lang$navigation$Navigation_ops['&>'],
+			_elm_lang$core$Task$sequence(
+				A2(_elm_lang$core$List$map, send, subs)),
+			_elm_lang$core$Task$succeed(
+				{ctor: '_Tuple0'}));
+	});
+var _elm_lang$navigation$Navigation$onSelfMsg = F3(
+	function (router, location, state) {
+		return A2(
+			_elm_lang$navigation$Navigation_ops['&>'],
+			A3(_elm_lang$navigation$Navigation$notify, router, state.subs, location),
+			_elm_lang$core$Task$succeed(state));
+	});
+var _elm_lang$navigation$Navigation$cmdHelp = F3(
+	function (router, subs, cmd) {
+		var _p4 = cmd;
+		switch (_p4.ctor) {
+			case 'Jump':
+				return _elm_lang$navigation$Navigation$go(_p4._0);
+			case 'New':
+				return A2(
+					_elm_lang$core$Task$andThen,
+					_elm_lang$navigation$Navigation$pushState(_p4._0),
+					A2(_elm_lang$navigation$Navigation$notify, router, subs));
+			default:
+				return A2(
+					_elm_lang$core$Task$andThen,
+					_elm_lang$navigation$Navigation$replaceState(_p4._0),
+					A2(_elm_lang$navigation$Navigation$notify, router, subs));
+		}
+	});
+var _elm_lang$navigation$Navigation$updateHelp = F2(
+	function (func, _p5) {
+		var _p6 = _p5;
+		return {
+			ctor: '_Tuple2',
+			_0: _p6._0,
+			_1: A2(_elm_lang$core$Platform_Cmd$map, func, _p6._1)
+		};
+	});
+var _elm_lang$navigation$Navigation$subscription = _elm_lang$core$Native_Platform.leaf('Navigation');
+var _elm_lang$navigation$Navigation$command = _elm_lang$core$Native_Platform.leaf('Navigation');
+var _elm_lang$navigation$Navigation$Location = function (a) {
+	return function (b) {
+		return function (c) {
+			return function (d) {
+				return function (e) {
+					return function (f) {
+						return function (g) {
+							return function (h) {
+								return function (i) {
+									return function (j) {
+										return function (k) {
+											return {href: a, host: b, hostname: c, protocol: d, origin: e, port_: f, pathname: g, search: h, hash: i, username: j, password: k};
+										};
+									};
+								};
+							};
+						};
+					};
+				};
+			};
+		};
+	};
+};
+var _elm_lang$navigation$Navigation$State = F2(
+	function (a, b) {
+		return {subs: a, process: b};
+	});
+var _elm_lang$navigation$Navigation$init = _elm_lang$core$Task$succeed(
+	A2(
+		_elm_lang$navigation$Navigation$State,
+		_elm_lang$core$Native_List.fromArray(
+			[]),
+		_elm_lang$core$Maybe$Nothing));
+var _elm_lang$navigation$Navigation$onEffects = F4(
+	function (router, cmds, subs, _p7) {
+		var _p8 = _p7;
+		var _p10 = _p8.process;
+		var stepState = function () {
+			var _p9 = {ctor: '_Tuple2', _0: subs, _1: _p10};
+			_v4_2:
+			do {
+				if (_p9._0.ctor === '[]') {
+					if (_p9._1.ctor === 'Just') {
+						return A2(
+							_elm_lang$navigation$Navigation_ops['&>'],
+							_elm_lang$core$Process$kill(_p9._1._0),
+							_elm_lang$core$Task$succeed(
+								A2(_elm_lang$navigation$Navigation$State, subs, _elm_lang$core$Maybe$Nothing)));
+					} else {
+						break _v4_2;
+					}
+				} else {
+					if (_p9._1.ctor === 'Nothing') {
+						return A2(
+							_elm_lang$core$Task$andThen,
+							_elm_lang$navigation$Navigation$spawnPopState(router),
+							function (pid) {
+								return _elm_lang$core$Task$succeed(
+									A2(
+										_elm_lang$navigation$Navigation$State,
+										subs,
+										_elm_lang$core$Maybe$Just(pid)));
+							});
+					} else {
+						break _v4_2;
+					}
+				}
+			} while(false);
+			return _elm_lang$core$Task$succeed(
+				A2(_elm_lang$navigation$Navigation$State, subs, _p10));
+		}();
+		return A2(
+			_elm_lang$navigation$Navigation_ops['&>'],
+			_elm_lang$core$Task$sequence(
+				A2(
+					_elm_lang$core$List$map,
+					A2(_elm_lang$navigation$Navigation$cmdHelp, router, subs),
+					cmds)),
+			stepState);
+	});
+var _elm_lang$navigation$Navigation$UserMsg = function (a) {
+	return {ctor: 'UserMsg', _0: a};
+};
+var _elm_lang$navigation$Navigation$Change = function (a) {
+	return {ctor: 'Change', _0: a};
+};
+var _elm_lang$navigation$Navigation$Parser = function (a) {
+	return {ctor: 'Parser', _0: a};
+};
+var _elm_lang$navigation$Navigation$makeParser = _elm_lang$navigation$Navigation$Parser;
+var _elm_lang$navigation$Navigation$Modify = function (a) {
+	return {ctor: 'Modify', _0: a};
+};
+var _elm_lang$navigation$Navigation$modifyUrl = function (url) {
+	return _elm_lang$navigation$Navigation$command(
+		_elm_lang$navigation$Navigation$Modify(url));
+};
+var _elm_lang$navigation$Navigation$New = function (a) {
+	return {ctor: 'New', _0: a};
+};
+var _elm_lang$navigation$Navigation$newUrl = function (url) {
+	return _elm_lang$navigation$Navigation$command(
+		_elm_lang$navigation$Navigation$New(url));
+};
+var _elm_lang$navigation$Navigation$Jump = function (a) {
+	return {ctor: 'Jump', _0: a};
+};
+var _elm_lang$navigation$Navigation$back = function (n) {
+	return _elm_lang$navigation$Navigation$command(
+		_elm_lang$navigation$Navigation$Jump(0 - n));
+};
+var _elm_lang$navigation$Navigation$forward = function (n) {
+	return _elm_lang$navigation$Navigation$command(
+		_elm_lang$navigation$Navigation$Jump(n));
+};
+var _elm_lang$navigation$Navigation$cmdMap = F2(
+	function (_p11, myCmd) {
+		var _p12 = myCmd;
+		switch (_p12.ctor) {
+			case 'Jump':
+				return _elm_lang$navigation$Navigation$Jump(_p12._0);
+			case 'New':
+				return _elm_lang$navigation$Navigation$New(_p12._0);
+			default:
+				return _elm_lang$navigation$Navigation$Modify(_p12._0);
+		}
+	});
+var _elm_lang$navigation$Navigation$Monitor = function (a) {
+	return {ctor: 'Monitor', _0: a};
+};
+var _elm_lang$navigation$Navigation$programWithFlags = F2(
+	function (_p13, stuff) {
+		var _p14 = _p13;
+		var _p16 = _p14._0;
+		var location = _elm_lang$navigation$Native_Navigation.getLocation(
+			{ctor: '_Tuple0'});
+		var init = function (flags) {
+			return A2(
+				_elm_lang$navigation$Navigation$updateHelp,
+				_elm_lang$navigation$Navigation$UserMsg,
+				A2(
+					stuff.init,
+					flags,
+					_p16(location)));
+		};
+		var view = function (model) {
+			return A2(
+				_elm_lang$html$Html_App$map,
+				_elm_lang$navigation$Navigation$UserMsg,
+				stuff.view(model));
+		};
+		var subs = function (model) {
+			return _elm_lang$core$Platform_Sub$batch(
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$navigation$Navigation$subscription(
+						_elm_lang$navigation$Navigation$Monitor(_elm_lang$navigation$Navigation$Change)),
+						A2(
+						_elm_lang$core$Platform_Sub$map,
+						_elm_lang$navigation$Navigation$UserMsg,
+						stuff.subscriptions(model))
+					]));
+		};
+		var update = F2(
+			function (msg, model) {
+				return A2(
+					_elm_lang$navigation$Navigation$updateHelp,
+					_elm_lang$navigation$Navigation$UserMsg,
+					function () {
+						var _p15 = msg;
+						if (_p15.ctor === 'Change') {
+							return A2(
+								stuff.urlUpdate,
+								_p16(_p15._0),
+								model);
+						} else {
+							return A2(stuff.update, _p15._0, model);
+						}
+					}());
+			});
+		return _elm_lang$html$Html_App$programWithFlags(
+			{init: init, view: view, update: update, subscriptions: subs});
+	});
+var _elm_lang$navigation$Navigation$program = F2(
+	function (parser, stuff) {
+		return A2(
+			_elm_lang$navigation$Navigation$programWithFlags,
+			parser,
+			_elm_lang$core$Native_Utils.update(
+				stuff,
+				{
+					init: function (_p17) {
+						return stuff.init;
+					}
+				}));
+	});
+var _elm_lang$navigation$Navigation$subMap = F2(
+	function (func, _p18) {
+		var _p19 = _p18;
+		return _elm_lang$navigation$Navigation$Monitor(
+			function (_p20) {
+				return func(
+					_p19._0(_p20));
+			});
+	});
+_elm_lang$core$Native_Platform.effectManagers['Navigation'] = {pkg: 'elm-lang/navigation', init: _elm_lang$navigation$Navigation$init, onEffects: _elm_lang$navigation$Navigation$onEffects, onSelfMsg: _elm_lang$navigation$Navigation$onSelfMsg, tag: 'fx', cmdMap: _elm_lang$navigation$Navigation$cmdMap, subMap: _elm_lang$navigation$Navigation$subMap};
+
+var _blake_education$lettersmash$GameBoard$fromUrl = function (url) {
+	return A2(_elm_lang$core$String$dropLeft, 2, url);
+};
+var _blake_education$lettersmash$GameBoard$urlParser = _elm_lang$navigation$Navigation$makeParser(
+	function (_p0) {
+		return _blake_education$lettersmash$GameBoard$fromUrl(
+			function (_) {
+				return _.hash;
+			}(_p0));
+	});
+var _blake_education$lettersmash$GameBoard$urlUpdate = F2(
+	function (url, model) {
+		return _elm_lang$core$Native_Utils.eq(
+			A2(_elm_lang$core$Debug$log, 'url', url),
+			'game') ? {
+			ctor: '_Tuple2',
+			_0: _elm_lang$core$Native_Utils.update(
+				model,
+				{currentPage: _blake_education$lettersmash$Types$GamePage}),
+			_1: _elm_lang$core$Platform_Cmd$none
+		} : {
+			ctor: '_Tuple2',
+			_0: _elm_lang$core$Native_Utils.update(
+				model,
+				{currentPage: _blake_education$lettersmash$Types$LobbyPage}),
+			_1: _elm_lang$core$Platform_Cmd$none
+		};
+	});
 var _blake_education$lettersmash$GameBoard$appendLetter = F2(
 	function (letter, candidate) {
 		return A2(_elm_lang$core$List$member, letter, candidate) ? candidate : _elm_lang$core$List$reverse(
@@ -8873,7 +9897,24 @@ var _blake_education$lettersmash$GameBoard$appendLetter = F2(
 				letter,
 				_elm_lang$core$List$reverse(candidate)));
 	});
-var _blake_education$lettersmash$GameBoard$init = {ctor: '_Tuple2', _0: _blake_education$lettersmash$Models$initialModel, _1: _elm_lang$core$Platform_Cmd$none};
+var _blake_education$lettersmash$GameBoard$init = function (url) {
+	return A2(_blake_education$lettersmash$GameBoard$urlUpdate, url, _blake_education$lettersmash$Models$initialModel);
+};
+var _blake_education$lettersmash$GameBoard$newGame = _elm_lang$core$Native_Platform.outgoingPort(
+	'newGame',
+	function (v) {
+		return v;
+	});
+var _blake_education$lettersmash$GameBoard$joinGame = _elm_lang$core$Native_Platform.outgoingPort(
+	'joinGame',
+	function (v) {
+		return v;
+	});
+var _blake_education$lettersmash$GameBoard$newBoard = _elm_lang$core$Native_Platform.outgoingPort(
+	'newBoard',
+	function (v) {
+		return v;
+	});
 var _blake_education$lettersmash$GameBoard$submit = _elm_lang$core$Native_Platform.outgoingPort(
 	'submit',
 	function (v) {
@@ -8882,26 +9923,49 @@ var _blake_education$lettersmash$GameBoard$submit = _elm_lang$core$Native_Platfo
 				return {letter: v.letter, id: v.id, owner: v.owner, surrounded: v.surrounded};
 			});
 	});
-var _blake_education$lettersmash$GameBoard$requestNewGame = _elm_lang$core$Native_Platform.outgoingPort(
-	'requestNewGame',
-	function (v) {
-		return v;
-	});
 var _blake_education$lettersmash$GameBoard$update = F2(
 	function (msg, model) {
-		var _p0 = msg;
-		switch (_p0.ctor) {
-			case 'Submit':
+		var _p1 = msg;
+		switch (_p1.ctor) {
+			case 'Navigate':
 				return {
 					ctor: '_Tuple2',
 					_0: model,
-					_1: _blake_education$lettersmash$GameBoard$submit(model.candidate)
+					_1: _elm_lang$navigation$Navigation$newUrl(_p1._0)
 				};
-			case 'RequestNewGame':
+			case 'BackToLobby':
 				return {
 					ctor: '_Tuple2',
 					_0: model,
-					_1: _blake_education$lettersmash$GameBoard$requestNewGame('')
+					_1: _elm_lang$navigation$Navigation$newUrl('#/lobby')
+				};
+			case 'GamesList':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{games: _p1._0}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'NewBoard':
+				return {
+					ctor: '_Tuple2',
+					_0: model,
+					_1: _blake_education$lettersmash$GameBoard$newBoard('')
+				};
+			case 'JoinGame':
+				return {
+					ctor: '_Tuple2',
+					_0: model,
+					_1: _blake_education$lettersmash$GameBoard$joinGame(_p1._0)
+				};
+			case 'UpdateBoard':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{boardState: _p1._0}),
+					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'Select':
 				return {
@@ -8909,7 +9973,7 @@ var _blake_education$lettersmash$GameBoard$update = F2(
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
 						{
-							candidate: A2(_blake_education$lettersmash$GameBoard$appendLetter, _p0._0, model.candidate)
+							candidate: A2(_blake_education$lettersmash$GameBoard$appendLetter, _p1._0, model.candidate)
 						}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
@@ -8940,13 +10004,11 @@ var _blake_education$lettersmash$GameBoard$update = F2(
 						}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
-			case 'UpdateBoard':
+			case 'Submit':
 				return {
 					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{boardState: _p0._0}),
-					_1: _elm_lang$core$Platform_Cmd$none
+					_0: model,
+					_1: _blake_education$lettersmash$GameBoard$submit(model.candidate)
 				};
 			case 'SubmitSuccess':
 				return {
@@ -8964,13 +10026,29 @@ var _blake_education$lettersmash$GameBoard$update = F2(
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
-						{errorMessage: _p0._0}),
+						{errorMessage: _p1._0}),
 					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'CreateGame':
+				return {
+					ctor: '_Tuple2',
+					_0: model,
+					_1: _blake_education$lettersmash$GameBoard$newGame('test')
 				};
 			default:
 				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 		}
 	});
+var _blake_education$lettersmash$GameBoard$games = _elm_lang$core$Native_Platform.incomingPort(
+	'games',
+	_elm_lang$core$Json_Decode$list(
+		A2(
+			_elm_lang$core$Json_Decode$andThen,
+			A2(_elm_lang$core$Json_Decode_ops[':='], 'name', _elm_lang$core$Json_Decode$string),
+			function (name) {
+				return _elm_lang$core$Json_Decode$succeed(
+					{name: name});
+			})));
 var _blake_education$lettersmash$GameBoard$boardState = _elm_lang$core$Native_Platform.incomingPort(
 	'boardState',
 	A2(
@@ -9074,6 +10152,7 @@ var _blake_education$lettersmash$GameBoard$boardState = _elm_lang$core$Native_Pl
 var _blake_education$lettersmash$GameBoard$gameOver = _elm_lang$core$Native_Platform.incomingPort('gameOver', _elm_lang$core$Json_Decode$string);
 var _blake_education$lettersmash$GameBoard$submitSuccess = _elm_lang$core$Native_Platform.incomingPort('submitSuccess', _elm_lang$core$Json_Decode$string);
 var _blake_education$lettersmash$GameBoard$submitFailed = _elm_lang$core$Native_Platform.incomingPort('submitFailed', _elm_lang$core$Json_Decode$string);
+var _blake_education$lettersmash$GameBoard$navigate = _elm_lang$core$Native_Platform.incomingPort('navigate', _elm_lang$core$Json_Decode$string);
 var _blake_education$lettersmash$GameBoard$subscriptions = function (model) {
 	return _elm_lang$core$Platform_Sub$batch(
 		_elm_lang$core$Native_List.fromArray(
@@ -9081,12 +10160,16 @@ var _blake_education$lettersmash$GameBoard$subscriptions = function (model) {
 				_blake_education$lettersmash$GameBoard$boardState(_blake_education$lettersmash$Actions$UpdateBoard),
 				_blake_education$lettersmash$GameBoard$submitSuccess(_blake_education$lettersmash$Actions$SubmitSuccess),
 				_blake_education$lettersmash$GameBoard$submitFailed(_blake_education$lettersmash$Actions$SubmitFailed),
-				_blake_education$lettersmash$GameBoard$gameOver(_blake_education$lettersmash$Actions$GameOver)
+				_blake_education$lettersmash$GameBoard$gameOver(_blake_education$lettersmash$Actions$GameOver),
+				_blake_education$lettersmash$GameBoard$games(_blake_education$lettersmash$Actions$GamesList),
+				_blake_education$lettersmash$GameBoard$navigate(_blake_education$lettersmash$Actions$Navigate)
 			]));
 };
 var _blake_education$lettersmash$GameBoard$main = {
-	main: _elm_lang$html$Html_App$program(
-		{init: _blake_education$lettersmash$GameBoard$init, update: _blake_education$lettersmash$GameBoard$update, view: _blake_education$lettersmash$Views$view, subscriptions: _blake_education$lettersmash$GameBoard$subscriptions})
+	main: A2(
+		_elm_lang$navigation$Navigation$program,
+		_blake_education$lettersmash$GameBoard$urlParser,
+		{init: _blake_education$lettersmash$GameBoard$init, update: _blake_education$lettersmash$GameBoard$update, view: _blake_education$lettersmash$Views$view, urlUpdate: _blake_education$lettersmash$GameBoard$urlUpdate, subscriptions: _blake_education$lettersmash$GameBoard$subscriptions})
 };
 
 var Elm = {};
@@ -9136,59 +10219,63 @@ require.register("web/elm/Actions", function(exports, require, module) {
 
 });
 
+;require.register("web/elm/Types", function(exports, require, module) {
+
+});
+
 ;require.register("web/elm/Views", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/Array", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/Array", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/Basics", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/Basics", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/Bitwise", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/Bitwise", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/Char", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/Char", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/Color", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/Color", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/Date", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/Date", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/Debug", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/Debug", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/Dict", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/Dict", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/Json/Decode", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/Json/Decode", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/Json/Encode", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/Json/Encode", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/List", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/List", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/Maybe", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/Maybe", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/Native/Array", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/Native/Array", function(exports, require, module) {
 'use strict';
 
 //import Native.List //
@@ -9986,7 +11073,7 @@ var _elm_lang$core$Native_Array = function () {
 }();
 });
 
-require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/Native/Basics", function(exports, require, module) {
+require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/Native/Basics", function(exports, require, module) {
 'use strict';
 
 //import Native.Utils //
@@ -10110,7 +11197,7 @@ var _elm_lang$core$Native_Basics = function () {
 }();
 });
 
-require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/Native/Bitwise", function(exports, require, module) {
+require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/Native/Bitwise", function(exports, require, module) {
 "use strict";
 
 var _elm_lang$core$Native_Bitwise = function () {
@@ -10141,7 +11228,7 @@ var _elm_lang$core$Native_Bitwise = function () {
 }();
 });
 
-require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/Native/Char", function(exports, require, module) {
+require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/Native/Char", function(exports, require, module) {
 "use strict";
 
 //import Native.Utils //
@@ -10171,7 +11258,7 @@ var _elm_lang$core$Native_Char = function () {
 }();
 });
 
-require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/Native/Date", function(exports, require, module) {
+require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/Native/Date", function(exports, require, module) {
 'use strict';
 
 //import Result //
@@ -10222,7 +11309,7 @@ var _elm_lang$core$Native_Date = function () {
 }();
 });
 
-require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/Native/Debug", function(exports, require, module) {
+require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/Native/Debug", function(exports, require, module) {
 'use strict';
 
 //import Native.Utils //
@@ -10251,7 +11338,7 @@ var _elm_lang$core$Native_Debug = function () {
 }();
 });
 
-require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/Native/Json", function(exports, require, module) {
+require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/Native/Json", function(exports, require, module) {
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -10452,7 +11539,9 @@ var _elm_lang$core$Native_Json = function () {
 		return { tag: 'oneOf', problems: problems };
 	}
 
-	var bad = { tag: 'fail' };
+	function bad(msg) {
+		return { tag: 'fail', msg: msg };
+	}
 
 	function badToString(problem) {
 		var context = '_';
@@ -10479,7 +11568,7 @@ var _elm_lang$core$Native_Json = function () {
 					return 'I ran into the following problems' + (context === '_' ? '' : ' at ' + context) + ':\n\n' + problems.join('\n');
 
 				case 'fail':
-					return 'I ran into a `fail` decoder' + (context === '_' ? '' : ' at ' + context);
+					return 'I ran into a `fail` decoder' + (context === '_' ? '' : ' at ' + context) + ': ' + problem.msg;
 			}
 		}
 	}
@@ -10511,9 +11600,19 @@ var _elm_lang$core$Native_Json = function () {
 				return typeof value === 'boolean' ? ok(value) : badPrimitive('a Bool', value);
 
 			case 'int':
-				var isNotInt = typeof value !== 'number' || !(-2147483647 < value && value < 2147483647 && (value | 0) === value) || !(isFinite(value) && !(value % 1));
+				if (typeof value !== 'number') {
+					return badPrimitive('an Int', value);
+				}
 
-				return isNotInt ? badPrimitive('an Int', value) : ok(value);
+				if (-2147483647 < value && value < 2147483647 && (value | 0) === value) {
+					return ok(value);
+				}
+
+				if (isFinite(value) && !(value % 1)) {
+					return ok(value);
+				}
+
+				return badPrimitive('an Int', value);
 
 			case 'float':
 				return typeof value === 'number' ? ok(value) : badPrimitive('a Float', value);
@@ -10573,7 +11672,7 @@ var _elm_lang$core$Native_Json = function () {
 
 			case 'key-value':
 				if ((typeof value === 'undefined' ? 'undefined' : _typeof(value)) !== 'object' || value === null || value instanceof Array) {
-					return err('an object', value);
+					return badPrimitive('an object', value);
 				}
 
 				var keyValuePairs = _elm_lang$core$Native_List.Nil;
@@ -10649,7 +11748,7 @@ var _elm_lang$core$Native_Json = function () {
 				return badOneOf(errors);
 
 			case 'fail':
-				return bad;
+				return bad(decoder.msg);
 
 			case 'succeed':
 				return ok(decoder.msg);
@@ -10787,7 +11886,7 @@ var _elm_lang$core$Native_Json = function () {
 }();
 });
 
-require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/Native/List", function(exports, require, module) {
+require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/Native/List", function(exports, require, module) {
 'use strict';
 
 //import Native.Utils //
@@ -10915,7 +12014,7 @@ var _elm_lang$core$Native_List = function () {
 }();
 });
 
-require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/Native/Platform", function(exports, require, module) {
+require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/Native/Platform", function(exports, require, module) {
 'use strict';
 
 //import //
@@ -11234,9 +12333,10 @@ var _elm_lang$core$Native_Platform = function () {
 
 	function toEffect(isCmd, home, taggers, value) {
 		function applyTaggers(x) {
-			while (taggers) {
-				x = taggers.tagger(x);
-				taggers = taggers.rest;
+			var temp = taggers;
+			while (temp) {
+				x = temp.tagger(x);
+				temp = temp.rest;
 			}
 			return x;
 		}
@@ -11399,7 +12499,7 @@ var _elm_lang$core$Native_Platform = function () {
 }();
 });
 
-require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/Native/Regex", function(exports, require, module) {
+require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/Native/Regex", function(exports, require, module) {
 'use strict';
 
 //import Maybe, Native.List //
@@ -11502,7 +12602,7 @@ var _elm_lang$core$Native_Regex = function () {
 }();
 });
 
-require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/Native/Scheduler", function(exports, require, module) {
+require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/Native/Scheduler", function(exports, require, module) {
 'use strict';
 
 //import Native.Utils //
@@ -11749,7 +12849,7 @@ var _elm_lang$core$Native_Scheduler = function () {
 }();
 });
 
-require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/Native/String", function(exports, require, module) {
+require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/Native/String", function(exports, require, module) {
 'use strict';
 
 //import Maybe, Native.List, Native.Utils, Result //
@@ -12017,7 +13117,7 @@ var _elm_lang$core$Native_String = function () {
 }();
 });
 
-require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/Native/Time", function(exports, require, module) {
+require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/Native/Time", function(exports, require, module) {
 "use strict";
 
 //import Native.Scheduler //
@@ -12047,7 +13147,7 @@ var _elm_lang$core$Native_Time = function () {
 }();
 });
 
-require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/Native/Utils", function(exports, require, module) {
+require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/Native/Utils", function(exports, require, module) {
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -12383,111 +13483,143 @@ var _elm_lang$core$Native_Utils = function () {
 }();
 });
 
-require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/Platform", function(exports, require, module) {
+require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/Platform", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/Platform/Cmd", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/Platform/Cmd", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/Platform/Sub", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/Platform/Sub", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/Process", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/Process", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/Random", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/Random", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/Regex", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/Regex", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/Result", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/Result", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/Set", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/Set", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/String", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/String", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/Task", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/Task", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/Time", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/src/Time", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/tests/Test", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/tests/Test", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/tests/Test/Array", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/tests/Test/Array", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/tests/Test/Basics", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/tests/Test/Basics", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/tests/Test/Bitwise", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/tests/Test/Bitwise", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/tests/Test/Char", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/tests/Test/Char", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/tests/Test/CodeGen", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/tests/Test/CodeGen", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/tests/Test/Dict", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/tests/Test/Dict", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/tests/Test/Equality", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/tests/Test/Equality", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/tests/Test/Json", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/tests/Test/Json", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/tests/Test/List", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/tests/Test/List", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/tests/Test/Regex", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/tests/Test/Regex", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/tests/Test/Result", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/tests/Test/Result", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/tests/Test/Set", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/tests/Test/Set", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/tests/Test/String", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.1/tests/Test/String", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/tests/Test/Trampoline", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/dom/1.0.0/src/Dom/LowLevel", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/html/1.0.0/src/Html", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/dom/1.0.0/src/Native/Dom", function(exports, require, module) {
+'use strict';
+
+var _elm_lang$dom$Native_Dom = function () {
+
+	function on(node) {
+		return function (eventName, decoder, toTask) {
+			return _elm_lang$core$Native_Scheduler.nativeBinding(function (callback) {
+
+				function performTask(event) {
+					var result = A2(_elm_lang$core$Json_Decode$decodeValue, decoder, event);
+					if (result.ctor === 'Ok') {
+						_elm_lang$core$Native_Scheduler.rawSpawn(toTask(result._0));
+					}
+				}
+
+				node.addEventListener(eventName, performTask);
+
+				return function () {
+					node.removeEventListener(eventName, performTask);
+				};
+			});
+		};
+	}
+
+	return {
+		onDocument: F3(on(document)),
+		onWindow: F3(on(window))
+	};
+}();
+});
+
+require.register("web/elm/elm-stuff/packages/elm-lang/html/1.0.0/src/Html", function(exports, require, module) {
 
 });
 
@@ -12507,7 +13639,70 @@ require.register("web/elm/elm-stuff/packages/elm-lang/core/4.0.0/src/Platform", 
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/virtual-dom/1.0.0/src/Native/VirtualDom", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/navigation/1.0.0/examples/Counter", function(exports, require, module) {
+
+});
+
+;require.register("web/elm/elm-stuff/packages/elm-lang/navigation/1.0.0/src/Native/Navigation", function(exports, require, module) {
+'use strict';
+
+var _elm_lang$navigation$Native_Navigation = function () {
+
+	function go(n) {
+		return _elm_lang$core$Native_Scheduler.nativeBinding(function (callback) {
+			if (n !== 0) {
+				history.go(n);
+			}
+			callback(_elm_lang$core$Native_Scheduler.succeed(_elm_lang$core$Native_Utils.Tuple0));
+		});
+	}
+
+	function pushState(url) {
+		return _elm_lang$core$Native_Scheduler.nativeBinding(function (callback) {
+			history.pushState({}, '', url);
+			callback(_elm_lang$core$Native_Scheduler.succeed(getLocation()));
+		});
+	}
+
+	function replaceState(url) {
+		return _elm_lang$core$Native_Scheduler.nativeBinding(function (callback) {
+			history.replaceState({}, '', url);
+			callback(_elm_lang$core$Native_Scheduler.succeed(getLocation()));
+		});
+	}
+
+	function getLocation() {
+		var location = document.location;
+
+		return {
+			href: location.href,
+			host: location.host,
+			hostname: location.hostname,
+			protocol: location.protocol,
+			origin: location.origin,
+			port_: location.port,
+			pathname: location.pathname,
+			search: location.search,
+			hash: location.hash,
+			username: location.username,
+			password: location.password
+		};
+	}
+
+	return {
+		go: go,
+		pushState: pushState,
+		replaceState: replaceState,
+		getLocation: getLocation
+	};
+}();
+});
+
+require.register("web/elm/elm-stuff/packages/elm-lang/navigation/1.0.0/src/Navigation", function(exports, require, module) {
+
+});
+
+;require.register("web/elm/elm-stuff/packages/elm-lang/virtual-dom/1.0.2/src/Native/VirtualDom", function(exports, require, module) {
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -12760,11 +13955,21 @@ var _elm_lang$virtual_dom$Native_VirtualDom = function () {
 				return render(vNode.node, eventNode);
 
 			case 'tagger':
+				var subNode = vNode.node;
+				var tagger = vNode.tagger;
+
+				while (subNode.type === 'tagger') {
+					(typeof tagger === 'undefined' ? 'undefined' : _typeof(tagger)) !== 'object' ? tagger = [tagger, subNode.tagger] : tagger.push(subNode.tagger);
+
+					subNode = subNode.node;
+				}
+
 				var subEventRoot = {
-					tagger: vNode.tagger,
+					tagger: tagger,
 					parent: eventNode
 				};
-				var domNode = render(vNode.node, subEventRoot);
+
+				var domNode = render(subNode, subEventRoot);
 				domNode.elm_event_node_ref = subEventRoot;
 				return domNode;
 
@@ -12844,6 +14049,7 @@ var _elm_lang$virtual_dom$Native_VirtualDom = function () {
 
 			if (typeof value === 'undefined') {
 				domNode.removeEventListener(key, handler);
+				allHandlers[key] = undefined;
 			} else if (typeof handler === 'undefined') {
 				var handler = makeEventHandler(eventNode, value);
 				domNode.addEventListener(key, handler);
@@ -13090,7 +14296,7 @@ var _elm_lang$virtual_dom$Native_VirtualDom = function () {
 			// remove if not in the new facts
 			if (!(aKey in b)) {
 				diff = diff || {};
-				diff[aKey] = typeof category === 'undefined' ? typeof a[aKey] === 'string' ? '' : null : category === STYLE_KEY ? '' : category === EVENT_KEY ? null : category === ATTR_KEY ? undefined : { namespace: a[aKey].namespace, value: undefined };
+				diff[aKey] = typeof category === 'undefined' ? typeof a[aKey] === 'string' ? '' : null : category === STYLE_KEY ? '' : category === EVENT_KEY || category === ATTR_KEY ? undefined : { namespace: a[aKey].namespace, value: undefined };
 
 				continue;
 			}
@@ -13180,7 +14386,13 @@ var _elm_lang$virtual_dom$Native_VirtualDom = function () {
 
 		switch (vNode.type) {
 			case 'tagger':
-				return addDomNodesHelp(domNode, vNode.node, patches, i, low + 1, high, domNode.elm_event_node_ref);
+				var subNode = vNode.node;
+
+				while (subNode.type === "tagger") {
+					subNode = subNode.node;
+				}
+
+				return addDomNodesHelp(domNode, subNode, patches, i, low + 1, high, domNode.elm_event_node_ref);
 
 			case 'node':
 				var vChildren = vNode.children;
@@ -13275,9 +14487,8 @@ var _elm_lang$virtual_dom$Native_VirtualDom = function () {
 		var parentNode = domNode.parentNode;
 		var newNode = render(vNode, eventNode);
 
-		var ref = domNode.elm_event_node_ref;
-		if (typeof ref !== 'undefined') {
-			newNode.elm_event_node_ref = ref;
+		if (typeof newNode.elm_event_node_ref === 'undefined') {
+			newNode.elm_event_node_ref = domNode.elm_event_node_ref;
 		}
 
 		if (parentNode && newNode !== domNode) {
@@ -13321,11 +14532,11 @@ var _elm_lang$virtual_dom$Native_VirtualDom = function () {
 }();
 });
 
-require.register("web/elm/elm-stuff/packages/elm-lang/virtual-dom/1.0.0/src/VirtualDom", function(exports, require, module) {
+require.register("web/elm/elm-stuff/packages/elm-lang/virtual-dom/1.0.2/src/VirtualDom", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/virtual-dom/1.0.0/tests/Native/TestHelpers", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/virtual-dom/1.0.2/tests/Native/TestHelpers", function(exports, require, module) {
 "use strict";
 
 Elm.Native.TestHelpers = {};
@@ -13363,15 +14574,15 @@ Elm.Native.TestHelpers.make = function (localRuntime) {
 };
 });
 
-require.register("web/elm/elm-stuff/packages/elm-lang/virtual-dom/1.0.0/tests/TestCases/Lazy", function(exports, require, module) {
+require.register("web/elm/elm-stuff/packages/elm-lang/virtual-dom/1.0.2/tests/TestCases/Lazy", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/virtual-dom/1.0.0/tests/TestHelpers", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/virtual-dom/1.0.2/tests/TestHelpers", function(exports, require, module) {
 
 });
 
-;require.register("web/elm/elm-stuff/packages/elm-lang/virtual-dom/1.0.0/tests/TestMain", function(exports, require, module) {
+;require.register("web/elm/elm-stuff/packages/elm-lang/virtual-dom/1.0.2/tests/TestMain", function(exports, require, module) {
 
 });
 
@@ -13410,48 +14621,114 @@ var elmDiv = document.getElementById('elm-container');
 
 var elmApp = Elm.GameBoard.embed(elmDiv);
 
-/* we will do this via channels eventually*/
-//elmApp.ports.boardState.send(initialState.boardState);
-
-// CHANNELS
-var channel = _socket2.default.channel("game:game1", {});
+// lobby channel
+var channel = _socket2.default.channel("lobby", {});
 channel.join().receive("ok", function (resp) {
-  console.log("Joined successfully", resp);
-  channel.push("board_state");
+  console.log("Lobby joined successfully", resp);
+  elmApp.ports.navigate.send("#/lobby");
+  channel.push("game_list");
+  elmApp.ports.newGame.subscribe(function (game_name) {
+    console.log("New game " + game_name);
+    channel.push("new_game");
+  });
+  elmApp.ports.joinGame.subscribe(function (game_name) {
+    console.log("Joining game " + game_name);
+    joinGame(game_name);
+    channel.push("join_game", game_name);
+    elmApp.ports.navigate.send("/#/game");
+  });
+  channel.on("games", function (games) {
+    console.log("games: ", games);
+    elmApp.ports.games.send(games.games);
+  });
 }).receive("error", function (resp) {
   console.log("Unable to join", resp);
 });
 
-channel.on("board_state", function (board_state) {
-  console.log("board state: ", board_state);
-  elmApp.ports.boardState.send(board_state);
+function joinGame(name) {
+  // Game channel
+  var channel = _socket2.default.channel("game:" + name, {});
+  channel.join().receive("ok", function (resp) {
+    console.log("Joined successfully", resp);
+    elmApp.ports.navigate.send("game");
+    channel.push("board_state");
+  }).receive("error", function (resp) {
+    console.log("Unable to join", resp);
+  });
+
+  channel.on("board_state", function (board_state) {
+    console.log("board state: ", board_state);
+    elmApp.ports.boardState.send(board_state);
+  });
+
+  channel.on("game_over", function (data) {
+    console.log("game_over: ", data);
+    elmApp.ports.gameOver.send(data.message);
+  });
+
+  channel.on("submission_successful", function (data) {
+    console.log("submission_successful: ", data);
+    elmApp.ports.submitSuccess.send(data.message);
+  });
+
+  channel.on("submission_failed", function (data) {
+    console.log("submission_failed: ", data);
+    elmApp.ports.submitFailed.send(data.message);
+  });
+
+  elmApp.ports.submit.subscribe(function (letters) {
+    channel.push("submit_word", letters);
+  });
+
+  elmApp.ports.newBoard.subscribe(function (message) {
+    channel.push("new_board", { message: message });
+  });
+}
 });
 
-channel.on("game_over", function (data) {
-  console.log("game_over: ", data);
-  elmApp.ports.gameOver.send(data.message);
+;require.register("web/static/js/lobby", function(exports, require, module) {
+"use strict";
+
+require("phoenix_html");
+
+var _socket = require("./socket");
+
+var _socket2 = _interopRequireDefault(_socket);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+// However, those files will only be executed if
+// explicitly imported. The only exception are files
+// in vendor, which are never wrapped in imports and
+// therefore are always executed.
+
+// Import dependencies
+//
+// If you no longer want to use a dependency, remember
+// to also remove its path from "config.paths.watched".
+
+
+var elmDiv = document.getElementById('elm-container');
+
+// Import local files
+//
+// Local files can be imported directly using relative
+// paths "./socket" or full ones "web/static/js/socket".
+
+var elmApp = Elm.GameBoard.embed(elmDiv);
+
+/* we will do this via channels eventually*/
+
+// CHANNELS
+var channel = _socket2.default.channel("lobby", {});
+channel.join().receive("ok", function (resp) {
+  console.log("Lobby joined successfully", resp);
+}).receive("error", function (resp) {
+  console.log("Unable to join", resp);
+});
 });
 
-channel.on("submission_successful", function (data) {
-  console.log("submission_successful: ", data);
-  elmApp.ports.submitSuccess.send(data.message);
-});
-
-channel.on("submission_failed", function (data) {
-  console.log("submission_failed: ", data);
-  elmApp.ports.submitFailed.send(data.message);
-});
-
-elmApp.ports.submit.subscribe(function (letters) {
-  channel.push("submit_word", letters);
-});
-
-elmApp.ports.requestNewGame.subscribe(function (message) {
-  channel.push("new_game", { message: message });
-});
-});
-
-require.register("web/static/js/socket", function(exports, require, module) {
+;require.register("web/static/js/socket", function(exports, require, module) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
