@@ -85,16 +85,64 @@ form.link, form.button {
 .letter {
   background-color: LightGray;
   line-height: 1.10;
-  padding-left: 30px;
-  padding-right: 30px;
+  padding-left: 15px;
+  padding-right: 15px;
   text-align: center;
   overflow: auto;
   font-family: "Courier";
-  font-size: 60px;
+  font-size: 50px;
+  user-select: none;
+}
+
+.mini-letter {
+  background-color: LightGray;
+  line-height: 1.10;
+  padding-left: 5px;
+  padding-right: 5px;
+  text-align: center;
+  overflow: auto;
+  font-family: "Andale Mono, Courier";
+  font-size: 20px;
+}
+
+.surrounded {
+  filter: saturate(180%);
+  font-weight: 800;
 }
 
 .selected {
-  filter: saturate([120%]);
+  opacity: 0.25;
+}
+
+.board {
+  cursor: pointer;
+}
+
+.player {
+  border: 2px solid grey;
+  border-radius: 4px;
+  padding: 3px;
+}
+
+.player .name {
+  font-size: 110%;
+  font-weight: 600;
+}
+
+.player .score {
+  font-size: 160%;
+  font-weight: 600;
+  float: right;
+}
+
+.player .total {
+  margin: 0 5px 0 0;
+  font-size: 80%;
+  font-weight: 600;
+}
+
+.word {
+  padding: 2px;
 }
 
 

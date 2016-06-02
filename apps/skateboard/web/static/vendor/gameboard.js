@@ -2543,7 +2543,8 @@ var _blake_education$lettersmash$Models$initialModel = {
 	errorMessage: '',
 	currentPage: _blake_education$lettersmash$Types$LobbyPage,
 	games: _elm_lang$core$Native_List.fromArray(
-		[])
+		[]),
+	help: false
 };
 var _blake_education$lettersmash$Models$Game = function (a) {
 	return {name: a};
@@ -2564,9 +2565,9 @@ var _blake_education$lettersmash$Models$BoardState = F4(
 	function (a, b, c, d) {
 		return {board: a, players: b, wordlist: c, game_over: d};
 	});
-var _blake_education$lettersmash$Models$Model = F5(
-	function (a, b, c, d, e) {
-		return {candidate: a, boardState: b, errorMessage: c, currentPage: d, games: e};
+var _blake_education$lettersmash$Models$Model = F6(
+	function (a, b, c, d, e, f) {
+		return {candidate: a, boardState: b, errorMessage: c, currentPage: d, games: e, help: f};
 	});
 
 var _blake_education$lettersmash$Actions$Navigate = function (a) {
@@ -7258,6 +7259,65 @@ var _elm_lang$html$Html_Events$Options = F2(
 		return {stopPropagation: a, preventDefault: b};
 	});
 
+var _blake_education$lettersmash$Views$help = function (show) {
+	return A2(
+		_elm_lang$html$Html$div,
+		_elm_lang$core$Native_List.fromArray(
+			[]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				A2(
+				_elm_lang$html$Html$div,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$class('help'),
+						_elm_lang$html$Html_Attributes$disabled(show)
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						A2(
+						_elm_lang$html$Html$h3,
+						_elm_lang$core$Native_List.fromArray(
+							[]),
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html$text('How to play:')
+							])),
+						A2(
+						_elm_lang$html$Html$p,
+						_elm_lang$core$Native_List.fromArray(
+							[]),
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html$text('Form words of 4 letters or more from letters on the board.')
+							])),
+						A2(
+						_elm_lang$html$Html$p,
+						_elm_lang$core$Native_List.fromArray(
+							[]),
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html$text('Surrounding a letter with your colour stops opponents from capturing them.')
+							])),
+						A2(
+						_elm_lang$html$Html$p,
+						_elm_lang$core$Native_List.fromArray(
+							[]),
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html$text('The game ends when every letter has a colour.')
+							])),
+						A2(
+						_elm_lang$html$Html$p,
+						_elm_lang$core$Native_List.fromArray(
+							[]),
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html$text('The winner is the player with the most territory when the game ends.')
+							]))
+					]))
+			]));
+};
 var _blake_education$lettersmash$Views$listGame = function (game) {
 	return A2(
 		_elm_lang$html$Html$p,
@@ -7276,20 +7336,18 @@ var _blake_education$lettersmash$Views$listGame = function (game) {
 				_elm_lang$core$Native_List.fromArray(
 					[
 						_elm_lang$html$Html$text(
-						A2(
-							_elm_lang$core$Basics_ops['++'],
-							'Join ',
-							_elm_lang$core$Basics$toString(game.name)))
+						A2(_elm_lang$core$Basics_ops['++'], 'Join ', game.name))
 					]))
 			]));
 };
-var _blake_education$lettersmash$Views$lobbyView = function (games) {
+var _blake_education$lettersmash$Views$lobbyView = function (model) {
 	return A2(
 		_elm_lang$html$Html$div,
 		_elm_lang$core$Native_List.fromArray(
 			[]),
 		_elm_lang$core$Native_List.fromArray(
 			[
+				_blake_education$lettersmash$Views$help(model.help),
 				A2(
 				_elm_lang$html$Html$h2,
 				_elm_lang$core$Native_List.fromArray(
@@ -7302,7 +7360,7 @@ var _blake_education$lettersmash$Views$lobbyView = function (games) {
 				_elm_lang$html$Html$div,
 				_elm_lang$core$Native_List.fromArray(
 					[]),
-				A2(_elm_lang$core$List$map, _blake_education$lettersmash$Views$listGame, games)),
+				A2(_elm_lang$core$List$map, _blake_education$lettersmash$Views$listGame, model.games)),
 				A2(
 				_elm_lang$html$Html$button,
 				_elm_lang$core$Native_List.fromArray(
@@ -7468,60 +7526,31 @@ var _blake_education$lettersmash$Views$playerBadge = function (player) {
 				_elm_lang$html$Html$div,
 				_elm_lang$core$Native_List.fromArray(
 					[
-						_elm_lang$html$Html_Attributes$class('name')
+						_elm_lang$html$Html_Attributes$class('clearfix')
 					]),
 				_elm_lang$core$Native_List.fromArray(
 					[
-						_elm_lang$html$Html$text(
 						A2(
-							_elm_lang$core$Basics_ops['++'],
-							player.name,
-							A2(
-								_elm_lang$core$Basics_ops['++'],
-								' ',
-								_elm_lang$core$Basics$toString(player.score))))
-					])),
-				A2(
-				_elm_lang$html$Html$span,
-				_elm_lang$core$Native_List.fromArray(
-					[
-						_elm_lang$html$Html_Attributes$class('total')
-					]),
-				_elm_lang$core$Native_List.fromArray(
-					[
-						_elm_lang$html$Html$text(
+						_elm_lang$html$Html$span,
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html_Attributes$class('name')
+							]),
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html$text(player.name)
+							])),
 						A2(
-							_elm_lang$core$Basics_ops['++'],
-							'Points: ',
-							_elm_lang$core$Basics$toString(player.total_score)))
-					])),
-				A2(
-				_elm_lang$html$Html$span,
-				_elm_lang$core$Native_List.fromArray(
-					[
-						_elm_lang$html$Html_Attributes$class('total')
-					]),
-				_elm_lang$core$Native_List.fromArray(
-					[
-						_elm_lang$html$Html$text(
-						A2(
-							_elm_lang$core$Basics_ops['++'],
-							'Won: ',
-							_elm_lang$core$Basics$toString(player.games_won)))
-					])),
-				A2(
-				_elm_lang$html$Html$span,
-				_elm_lang$core$Native_List.fromArray(
-					[
-						_elm_lang$html$Html_Attributes$class('total')
-					]),
-				_elm_lang$core$Native_List.fromArray(
-					[
-						_elm_lang$html$Html$text(
-						A2(
-							_elm_lang$core$Basics_ops['++'],
-							'Played: ',
-							_elm_lang$core$Basics$toString(player.games_played)))
+						_elm_lang$html$Html$span,
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html_Attributes$class('score')
+							]),
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html$text(
+								_elm_lang$core$Basics$toString(player.score))
+							]))
 					]))
 			]));
 };
@@ -7535,7 +7564,7 @@ var _blake_education$lettersmash$Views$playerView = function (player) {
 				_blake_education$lettersmash$Views$playerBadge(player)
 			]));
 };
-var _blake_education$lettersmash$Views$wordlistView = function (word) {
+var _blake_education$lettersmash$Views$wordView = function (word) {
 	return A2(
 		_elm_lang$html$Html$div,
 		_elm_lang$core$Native_List.fromArray(
@@ -7547,7 +7576,9 @@ var _blake_education$lettersmash$Views$wordlistView = function (word) {
 				A2(
 				_elm_lang$html$Html$h4,
 				_elm_lang$core$Native_List.fromArray(
-					[]),
+					[
+						_elm_lang$html$Html_Attributes$class('word')
+					]),
 				_elm_lang$core$Native_List.fromArray(
 					[
 						_elm_lang$html$Html$text(word.word)
@@ -7712,25 +7743,17 @@ var _blake_education$lettersmash$Views$gameView = function (model) {
 						_elm_lang$html$Html$div,
 						_elm_lang$core$Native_List.fromArray(
 							[
-								_elm_lang$html$Html_Attributes$class('board col-md-12')
+								_elm_lang$html$Html_Attributes$class('col-md-3')
+							]),
+						A2(_elm_lang$core$List$map, _blake_education$lettersmash$Views$playerView, model.boardState.players)),
+						A2(
+						_elm_lang$html$Html$div,
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html_Attributes$class('board col-md-6')
 							]),
 						_elm_lang$core$Native_List.fromArray(
 							[
-								A2(
-								_elm_lang$html$Html$div,
-								_elm_lang$core$Native_List.fromArray(
-									[]),
-								_elm_lang$core$Native_List.fromArray(
-									[
-										A2(
-										_elm_lang$html$Html$h2,
-										_elm_lang$core$Native_List.fromArray(
-											[]),
-										_elm_lang$core$Native_List.fromArray(
-											[
-												_elm_lang$html$Html$text('Game Name')
-											]))
-									])),
 								A2(
 								_elm_lang$html$Html$div,
 								_elm_lang$core$Native_List.fromArray(
@@ -7738,57 +7761,32 @@ var _blake_education$lettersmash$Views$gameView = function (model) {
 								A2(
 									_elm_lang$core$List$map,
 									_blake_education$lettersmash$Views$boardRow(model.candidate),
-									model.boardState.board))
-							]))
-					])),
-				_blake_education$lettersmash$Views$buttons(model),
-				A2(
-				_elm_lang$html$Html$div,
-				_elm_lang$core$Native_List.fromArray(
-					[
-						_elm_lang$html$Html_Attributes$class('row')
-					]),
-				_elm_lang$core$Native_List.fromArray(
-					[
-						A2(
-						_elm_lang$html$Html$div,
-						_elm_lang$core$Native_List.fromArray(
-							[
-								_elm_lang$html$Html_Attributes$class('board col-md-12')
-							]),
-						_elm_lang$core$Native_List.fromArray(
-							[
+									model.boardState.board)),
+								_blake_education$lettersmash$Views$buttons(model),
 								A2(
-								_elm_lang$html$Html$h2,
+								_elm_lang$html$Html$div,
 								_elm_lang$core$Native_List.fromArray(
 									[
-										_elm_lang$html$Html_Attributes$class('candidate')
+										_elm_lang$html$Html_Attributes$class('board col-md-12')
 									]),
-								A2(_elm_lang$core$List$map, _blake_education$lettersmash$Views$candidateLetterView, model.candidate))
-							]))
-					])),
-				A2(
-				_elm_lang$html$Html$div,
-				_elm_lang$core$Native_List.fromArray(
-					[
-						_elm_lang$html$Html_Attributes$class('row')
-					]),
-				_elm_lang$core$Native_List.fromArray(
-					[
+								_elm_lang$core$Native_List.fromArray(
+									[
+										A2(
+										_elm_lang$html$Html$h2,
+										_elm_lang$core$Native_List.fromArray(
+											[
+												_elm_lang$html$Html_Attributes$class('candidate')
+											]),
+										A2(_elm_lang$core$List$map, _blake_education$lettersmash$Views$candidateLetterView, model.candidate))
+									]))
+							])),
 						A2(
 						_elm_lang$html$Html$div,
 						_elm_lang$core$Native_List.fromArray(
 							[
-								_elm_lang$html$Html_Attributes$class('col-md-4')
+								_elm_lang$html$Html_Attributes$class('col-md-3')
 							]),
-						A2(_elm_lang$core$List$map, _blake_education$lettersmash$Views$playerView, model.boardState.players)),
-						A2(
-						_elm_lang$html$Html$div,
-						_elm_lang$core$Native_List.fromArray(
-							[
-								_elm_lang$html$Html_Attributes$class('col-md-8')
-							]),
-						A2(_elm_lang$core$List$map, _blake_education$lettersmash$Views$wordlistView, model.boardState.wordlist))
+						A2(_elm_lang$core$List$map, _blake_education$lettersmash$Views$wordView, model.boardState.wordlist))
 					]))
 			]));
 };
@@ -7796,7 +7794,7 @@ var _blake_education$lettersmash$Views$view = function (model) {
 	var _p0 = A2(_elm_lang$core$Debug$log, 'model.currentPage', model.currentPage);
 	switch (_p0.ctor) {
 		case 'LobbyPage':
-			return _blake_education$lettersmash$Views$lobbyView(model.games);
+			return _blake_education$lettersmash$Views$lobbyView(model);
 		case 'GamePage':
 			return _blake_education$lettersmash$Views$gameView(model);
 		default:

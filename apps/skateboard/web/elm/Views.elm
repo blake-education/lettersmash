@@ -32,7 +32,7 @@ view : Model -> Html Msg
 view model =
   case (log "model.currentPage" model.currentPage) of
     LobbyPage ->
-      lobbyView model.games
+      lobbyView model
 
     GamePage ->
       gameView model
@@ -73,34 +73,24 @@ gameView model =
     , div
       [ class "row" ]
       [ div
-        [ class "board col-md-12" ]
-        [ div
-          []
-          [ h2 [] [text "Game Name"] ]
-
-        , div
-          []
-          (List.map (boardRow model.candidate) model.boardState.board)
-        ]
-      ]
-    , buttons model
-    , div
-      [ class "row" ]
-      [ div
-        [ class "board col-md-12" ]
-        [h2
-          [ class "candidate" ]
-          (List.map candidateLetterView model.candidate)
-        ]
-      ]
-    , div
-      [ class "row" ]
-      [ div
-          [ class "col-md-4" ]
+          [ class "col-md-3" ]
           (List.map playerView model.boardState.players)
       , div
-          [ class "col-md-8" ]
-          (List.map wordlistView model.boardState.wordlist)
+        [ class "board col-md-6" ]
+        [ div
+          []
+          (List.map (boardRow model.candidate) model.boardState.board)
+        , buttons model
+        , div
+          [ class "board col-md-12" ]
+          [h2
+            [ class "candidate" ]
+            (List.map candidateLetterView model.candidate)
+          ]
+        ]
+      , div
+          [ class "col-md-3" ]
+          (List.map wordView model.boardState.wordlist)
       ]
     ]
 
@@ -153,25 +143,30 @@ playerBadge : Player -> Html msg
 playerBadge player =
   div
     [class "player", backgroundStyle player.index]
-    [ div
-      [class "name"]
-      [text (player.name ++ " " ++ toString (player.score))]
-    , span
-      [class "total"]
-      [text ("Points: " ++ toString (player.total_score))]
-    , span
-      [class "total"]
-      [text ("Won: " ++ toString (player.games_won))]
-    , span
-      [class "total"]
-      [text ("Played: " ++ toString (player.games_played))]
+    [ div [class "clearfix"]
+      [ span
+        [class "name"]
+        [text player.name]
+      , span
+        [class "score"]
+        [text (toString player.score)]
+      ]
+    --, span
+      --[class "total"]
+      --[text ("Points: " ++ toString (player.total_score))]
+    --, span
+      --[class "total"]
+      --[text ("Won: " ++ toString (player.games_won))]
+    --, span
+      --[class "total"]
+      --[text ("Played: " ++ toString (player.games_played))]
     ]
 
-wordlistView : Word -> Html msg
-wordlistView word  =
+wordView : Word -> Html msg
+wordView word  =
   div
     [ backgroundStyle word.played_by ]
-    [ h4 [] [ text word.word ] ]
+    [ h4 [class "word"] [ text word.word ] ]
 
 
 boardRow : Candidate -> BoardRow -> Html Msg
@@ -229,12 +224,13 @@ letterSelected : Letter -> Candidate ->  Bool
 letterSelected letter candidate =
   List.any (\c -> letter.id == c.id) candidate
 
-lobbyView : List Game -> Html Msg
-lobbyView games =
+lobbyView : Model -> Html Msg
+lobbyView model =
   div []
     [
-      h2 [] [text ("Games")]
-      , div [] (List.map listGame games)
+      help model.help
+    , h2 [] [text ("Games")]
+      , div [] (List.map listGame model.games)
       , button
         [ class "btn", Events.onClick CreateGame]
         [ text "Create Game" ]
@@ -246,6 +242,23 @@ listGame game =
     []
     [ button
         [ class "btn", Events.onClick (JoinGame game.name)]
-        --[ class "btn"]
-        [text ("Join " ++ toString (game.name))]
+        [text ("Join " ++ game.name)]
+    ]
+
+help : Bool -> Html Msg
+help show =
+  div []
+    [
+      div [ class "help", disabled show ]
+        [
+          h3 [] [text ("How to play:")]
+          , p []
+            [ text("Form words of 4 letters or more from letters on the board.")]
+          , p []
+            [ text("Surrounding a letter with your colour stops opponents from capturing them.")]
+          , p []
+            [ text("The game ends when every letter has a colour.")]
+          , p []
+            [ text("The winner is the player with the most territory when the game ends.")]
+        ]
     ]

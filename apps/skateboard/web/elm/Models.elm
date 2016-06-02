@@ -62,6 +62,7 @@ type alias Model =
   , errorMessage : String
   , currentPage : Page
   , games : Games
+  , help : Bool
   }
 
 
@@ -77,5 +78,6 @@ initialModel =
   , errorMessage = ""
   , currentPage = LobbyPage
   , games = []
+  , help = False
   }
 

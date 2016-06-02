@@ -53,7 +53,7 @@ function joinGame(name) {
   channel.join()
     .receive("ok", resp => {
       console.log("Joined successfully", resp);
-      elmApp.ports.navigate.send("game");
+      elmApp.ports.navigate.send("#/game");
       channel.push("board_state")
     })
     .receive("error", resp => { console.log("Unable to join", resp) })
