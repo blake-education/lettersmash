@@ -11,7 +11,8 @@ defmodule Library.GameServer do
   starts a Game
   """
   def add_game(name) do
-    Supervisor.start_child(__MODULE__, [name])
+    %{active: count} = Supervisor.count_children(__MODULE__)
+    Supervisor.start_child(__MODULE__, [:"game_#{count}"])
   end
 
   @doc """
@@ -25,8 +26,8 @@ defmodule Library.GameServer do
   finds a Game by name
   """
   def find_game(name) do
-    Enum.find games, fn(child) ->
-      Game.name(child) == name
+    Enum.find games, fn(game) ->
+      Game.name(game) == String.to_atom(name)
     end
   end
 

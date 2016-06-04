@@ -95,6 +95,7 @@ defmodule Library.Game do
           board: Enum.chunk(Board.letters(state.board), 5),
           wordlist: Wordlist.words(state.wordlist),
           players: GamePlayers.display(state.players),
+          name: state.name
       }
     {:reply, model, state}
   end
@@ -104,7 +105,7 @@ defmodule Library.Game do
   end
 
   def handle_cast({:add_player, player}, state) do
-    if find_player(state.players, player.id) do
+    if GamePlayers.player_in_game(state.players, player.id) do
       {:noreply, state}
     else
       new_player = Library.PlayerServer.find_or_create_player(Map.put(player, :index, state.next_index))
@@ -117,6 +118,7 @@ defmodule Library.Game do
         }
       }
     end
+    GamePlayers.display(state.players)
   end
 
   def handle_cast({:remove_player, player}, state) do

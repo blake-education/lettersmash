@@ -45,6 +45,7 @@ type alias BoardState =
   , players : List Player
   , wordlist : List Word
   , game_over : Bool
+  , name : String
   }
 
 
@@ -74,6 +75,7 @@ initialModel =
       , players = []
       , wordlist = []
       , game_over = False
+      , name = ""
       }
   , errorMessage = ""
   , currentPage = LobbyPage

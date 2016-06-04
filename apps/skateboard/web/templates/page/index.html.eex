@@ -1,2 +1,4 @@
-<!-- inject the logged in user info into the page -->
-<div id="elm-container"></div>
+<h2>Welcome to LettersMash</h2>
+<p>
+  Register or login to play.
+</p>

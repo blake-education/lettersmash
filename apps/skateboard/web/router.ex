@@ -19,9 +19,8 @@ defmodule Skateboard.Router do
     get    "/login",  SessionController, :new
     post   "/login",  SessionController, :create
     delete "/logout", SessionController, :delete
-    get    "/lobby",  PageController, :index
-    get    "/game",   PageController, :index
     get    "/",       PageController, :index
+    get    "/game",   PageController, :game
   end
 
   # Other scopes may use custom stacks.

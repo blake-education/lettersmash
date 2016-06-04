@@ -4,6 +4,7 @@ defmodule Skateboard.GameChannel do
   alias Library.{GameServer,Game}
 
   def join("game:" <> name, _message, socket) do
+    IO.puts "joining game #{name}"
     game = find_or_create_game(name)
     socket = assign(socket, :game_name, name)
 
@@ -56,11 +57,13 @@ defmodule Skateboard.GameChannel do
   end
 
   defp find_or_create_game(name) do
-    IO.inspect name
     game = GameServer.find_game name
+    IO.inspect game
     unless game do
+      IO.puts "game not found"
       {:ok, game} = GameServer.add_game(name)
     end
+    IO.inspect game
     game
   end
 

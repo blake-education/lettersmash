@@ -11,45 +11,52 @@
 //
 // If you no longer want to use a dependency, remember
 // to also remove its path from "config.paths.watched".
-import "phoenix_html"
+import "phoenix_html";
 
 // Import local files
 //
 // Local files can be imported directly using relative
 // paths "./socket" or full ones "web/static/js/socket".
 
-import socket from "./socket"
+import socket from "./socket";
 
 const elmDiv = document.getElementById('elm-container');
-const elmApp = Elm.GameBoard.embed(elmDiv);
+var elmApp;
 
-// lobby channel
-let channel = socket.channel("lobby", {})
-channel.join()
-  .receive("ok", resp => {
-    console.log("Lobby joined successfully", resp);
-    elmApp.ports.navigate.send("#/lobby");
-    channel.push("game_list");
-    elmApp.ports.newGame.subscribe( function(game_name) {
-      console.log("New game " + game_name);
-      channel.push("new_game");
-    });
-    elmApp.ports.joinGame.subscribe( function(game_name) {
-      console.log("Joining game " + game_name);
-      joinGame(game_name);
-      channel.push("join_game", game_name);
-      elmApp.ports.navigate.send("/#/game");
-    });
-    channel.on("games", games => {
-      console.log("games: ", games);
-      elmApp.ports.games.send(games.games);
-    });
-  })
-  .receive("error", resp => { console.log("Unable to join", resp) })
+if (elmDiv) {
+  elmApp = Elm.GameBoard.embed(elmDiv);
+  enterLobby();
+};
+
+function enterLobby() {
+  let channel = socket.channel("lobby", {});
+  channel.join()
+    .receive("ok", resp => {
+      console.log("Lobby joined successfully", resp);
+      elmApp.ports.navigate.send("#/lobby");
+      channel.push("game_list");
+      elmApp.ports.newGame.subscribe( function(game_name) {
+        console.log("New game " + game_name);
+        channel.push("new_game");
+      });
+      elmApp.ports.joinGame.subscribe( function(game_name) {
+        console.log("Joining game " + game_name);
+        let gameChannel = joinGame(game_name);
+        channel.push("join_game", game_name);
+        elmApp.ports.navigate.send("/#/game");
+        gameChannel.push("board_state")
+      });
+      channel.on("games", games => {
+        console.log("games: ", games);
+        elmApp.ports.games.send(games.games);
+      });
+    })
+    .receive("error", resp => { console.log("Unable to join", resp) })
+};
 
 function joinGame(name) {
   // Game channel
-  let channel = socket.channel("game:" + name, {})
+  var channel = socket.channel("game:" + name, {})
   channel.join()
     .receive("ok", resp => {
       console.log("Joined successfully", resp);
@@ -85,4 +92,11 @@ function joinGame(name) {
   elmApp.ports.newBoard.subscribe( function(message) {
     channel.push("new_board", {message: message});
   });
+
+  elmApp.ports.leaveGame.subscribe( function(message) {
+    console.log("leaveGame");
+    channel.leave();
+    elmApp.ports.navigate.send("#/lobby");
+  });
+  return channel;
 }

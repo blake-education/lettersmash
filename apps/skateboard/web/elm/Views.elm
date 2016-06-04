@@ -2,7 +2,6 @@ module Views exposing (..)
 
 import Debug exposing (..)
 import Types exposing (..)
-import Actions exposing (..)
 import Models exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -65,9 +64,6 @@ gameView model =
         [ button
           [ class "btn btn-primary btn-default", disabled (not model.boardState.game_over), Events.onClick NewBoard ]
           [ text "Play again" ]
-        , button
-          [ class "btn", disabled (not model.boardState.game_over), Events.onClick BackToLobby ]
-          [ text "Back to Lobby" ]
         ]
     ]
     , div
@@ -77,7 +73,10 @@ gameView model =
           (List.map playerView model.boardState.players)
       , div
         [ class "board col-md-6" ]
-        [ div
+        [ h3
+          []
+          [ text model.boardState.name]
+        , div
           []
           (List.map (boardRow model.candidate) model.boardState.board)
         , buttons model
@@ -113,6 +112,9 @@ buttons model =
         , button
             [ class "btn btn-primary", disabled (hideSubmit model.candidate), Events.onClick Submit ]
             [ text "Submit" ]
+      , button
+          [ class "btn btn-default", Events.onClick LeaveGame ]
+          [ text "Lobby" ]
         ]
       ]
     ]

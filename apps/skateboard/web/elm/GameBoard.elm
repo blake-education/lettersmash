@@ -2,7 +2,6 @@ port module GameBoard exposing (..)
 
 import Debug exposing (..)
 import Types exposing (..)
-import Actions exposing (..)
 import Models exposing (..)
 import Views exposing (..)
 import Html exposing (..)
@@ -49,6 +48,11 @@ update msg model =
     BackToLobby ->
       ( model
       , newUrl "#/lobby"
+      )
+
+    LeaveGame ->
+      ( model
+      , leaveGame ""
       )
 
     GamesList games ->
@@ -123,6 +127,7 @@ port newGame : String -> Cmd msg
 port joinGame : String -> Cmd msg
 port newBoard : String -> Cmd msg
 port submit : List Letter -> Cmd msg
+port leaveGame : String -> Cmd msg
 
 
 -- incoming ports

@@ -2538,7 +2538,8 @@ var _blake_education$lettersmash$Models$initialModel = {
 			[]),
 		wordlist: _elm_lang$core$Native_List.fromArray(
 			[]),
-		game_over: false
+		game_over: false,
+		name: ''
 	},
 	errorMessage: '',
 	currentPage: _blake_education$lettersmash$Types$LobbyPage,
@@ -2561,9 +2562,9 @@ var _blake_education$lettersmash$Models$Word = F2(
 	function (a, b) {
 		return {word: a, played_by: b};
 	});
-var _blake_education$lettersmash$Models$BoardState = F4(
-	function (a, b, c, d) {
-		return {board: a, players: b, wordlist: c, game_over: d};
+var _blake_education$lettersmash$Models$BoardState = F5(
+	function (a, b, c, d, e) {
+		return {board: a, players: b, wordlist: c, game_over: d, name: e};
 	});
 var _blake_education$lettersmash$Models$Model = F6(
 	function (a, b, c, d, e, f) {
@@ -2591,6 +2592,7 @@ var _blake_education$lettersmash$Actions$Submit = {ctor: 'Submit'};
 var _blake_education$lettersmash$Actions$Select = function (a) {
 	return {ctor: 'Select', _0: a};
 };
+var _blake_education$lettersmash$Actions$LeaveGame = {ctor: 'LeaveGame'};
 var _blake_education$lettersmash$Actions$BackToLobby = {ctor: 'BackToLobby'};
 var _blake_education$lettersmash$Actions$NewBoard = {ctor: 'NewBoard'};
 var _blake_education$lettersmash$Actions$JoinGame = function (a) {
@@ -7484,6 +7486,17 @@ var _blake_education$lettersmash$Views$buttons = function (model) {
 										_elm_lang$core$Native_List.fromArray(
 											[
 												_elm_lang$html$Html$text('Submit')
+											])),
+										A2(
+										_elm_lang$html$Html$button,
+										_elm_lang$core$Native_List.fromArray(
+											[
+												_elm_lang$html$Html_Attributes$class('btn btn-default'),
+												_elm_lang$html$Html_Events$onClick(_blake_education$lettersmash$Actions$LeaveGame)
+											]),
+										_elm_lang$core$Native_List.fromArray(
+											[
+												_elm_lang$html$Html$text('Lobby')
 											]))
 									]))
 							]))
@@ -7715,19 +7728,6 @@ var _blake_education$lettersmash$Views$gameView = function (model) {
 								_elm_lang$core$Native_List.fromArray(
 									[
 										_elm_lang$html$Html$text('Play again')
-									])),
-								A2(
-								_elm_lang$html$Html$button,
-								_elm_lang$core$Native_List.fromArray(
-									[
-										_elm_lang$html$Html_Attributes$class('btn'),
-										_elm_lang$html$Html_Attributes$disabled(
-										_elm_lang$core$Basics$not(model.boardState.game_over)),
-										_elm_lang$html$Html_Events$onClick(_blake_education$lettersmash$Actions$BackToLobby)
-									]),
-								_elm_lang$core$Native_List.fromArray(
-									[
-										_elm_lang$html$Html$text('Back to Lobby')
 									]))
 							]))
 					])),
@@ -7754,6 +7754,14 @@ var _blake_education$lettersmash$Views$gameView = function (model) {
 							]),
 						_elm_lang$core$Native_List.fromArray(
 							[
+								A2(
+								_elm_lang$html$Html$h3,
+								_elm_lang$core$Native_List.fromArray(
+									[]),
+								_elm_lang$core$Native_List.fromArray(
+									[
+										_elm_lang$html$Html$text(model.boardState.name)
+									])),
 								A2(
 								_elm_lang$html$Html$div,
 								_elm_lang$core$Native_List.fromArray(
@@ -8746,6 +8754,11 @@ var _blake_education$lettersmash$GameBoard$submit = _elm_lang$core$Native_Platfo
 				return {letter: v.letter, id: v.id, owner: v.owner, surrounded: v.surrounded};
 			});
 	});
+var _blake_education$lettersmash$GameBoard$leaveGame = _elm_lang$core$Native_Platform.outgoingPort(
+	'leaveGame',
+	function (v) {
+		return v;
+	});
 var _blake_education$lettersmash$GameBoard$update = F2(
 	function (msg, model) {
 		var _p1 = msg;
@@ -8761,6 +8774,12 @@ var _blake_education$lettersmash$GameBoard$update = F2(
 					ctor: '_Tuple2',
 					_0: model,
 					_1: _elm_lang$navigation$Navigation$newUrl('#/lobby')
+				};
+			case 'LeaveGame':
+				return {
+					ctor: '_Tuple2',
+					_0: model,
+					_1: _blake_education$lettersmash$GameBoard$leaveGame('')
 				};
 			case 'GamesList':
 				return {
@@ -8966,8 +8985,13 @@ var _blake_education$lettersmash$GameBoard$boardState = _elm_lang$core$Native_Pl
 								_elm_lang$core$Json_Decode$andThen,
 								A2(_elm_lang$core$Json_Decode_ops[':='], 'game_over', _elm_lang$core$Json_Decode$bool),
 								function (game_over) {
-									return _elm_lang$core$Json_Decode$succeed(
-										{board: board, players: players, wordlist: wordlist, game_over: game_over});
+									return A2(
+										_elm_lang$core$Json_Decode$andThen,
+										A2(_elm_lang$core$Json_Decode_ops[':='], 'name', _elm_lang$core$Json_Decode$string),
+										function (name) {
+											return _elm_lang$core$Json_Decode$succeed(
+												{board: board, players: players, wordlist: wordlist, game_over: game_over, name: name});
+										});
 								});
 						});
 				});

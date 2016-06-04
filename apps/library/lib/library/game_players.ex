@@ -20,6 +20,14 @@ defmodule Library.GamePlayers do
     GenServer.call(pid, {:find_player, id})
   end
 
+  def player_in_game(pid, id) do
+    GenServer.call(pid, {:player_in_game, id})
+  end
+
+  def count(pid) do
+    GenServer.call(pid, :count)
+  end
+
   def clear_scores(pid) do
     GenServer.call(pid, :clear_scores)
   end
@@ -57,6 +65,14 @@ defmodule Library.GamePlayers do
     {:reply, player, state}
   end
 
+  def handle_call({:player_in_game, id}, _from, state) do
+    {:reply, Enum.any?(state, &(Player.id(&1) == id)), state}
+  end
+
+  def handle_call(:count, _from, state) do
+    {:reply, length(state), state}
+  end
+
   def handle_call(:clear_scores, _from, state) do
     state
     |> Enum.map(&Player.clear_score(&1))
@@ -75,8 +91,9 @@ defmodule Library.GamePlayers do
   end
 
   def handle_cast({:save_events, game_id}, state) do
+    winner_id = Player.id(List.first(sort(state)))
     state
-    |> Enum.map(&Player.save_event(&1, Player.id(List.first(state)), game_id))
+    |> Enum.map(&Player.save_event(&1, winner_id, game_id))
     {:noreply, state}
   end
 
@@ -107,4 +124,5 @@ defmodule Library.GamePlayers do
     |> Player.get_state
     player.score
   end
+
 end
