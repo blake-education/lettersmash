@@ -3,9 +3,6 @@ defmodule Library.GameTest do
 
   alias Library.{Game,GamePlayers}
 
-  def create_player do
-    
-  end
   setup do
     {:ok, game} = Game.start_link("game1")
     Game.add_player(game, %{id: 1, name: "bob", index: "2"})
@@ -48,7 +45,10 @@ defmodule Library.GameTest do
   test "can start a new game by clearing the board and player scores", %{game: game} do
     word = [%{letter: "C", id: 1, owner: 0, surrounded: false}, %{letter: "A", id: 2, owner: 0, surrounded: false}, %{letter: "N", id: 3, owner: 0, surrounded: false},%{letter: "E", id: 4, owner: 0, surrounded: false}]
     assert :ok = Game.submit_word(game, word, "1")
-    Game.new_game(game)
+    Game.new_board(game)
+    state = Game.display_state(game)
+    assert length(state.wordlist) == 0
+    assert state.game_over == false
   end
 
   test "returns a display_state for the front-end", %{game: game} do

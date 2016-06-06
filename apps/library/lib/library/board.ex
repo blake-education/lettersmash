@@ -68,14 +68,11 @@ defmodule Library.Board do
     {:reply, complete, state}
   end
 
-  def handle_call({:add_word, word, index}, _from, state) do
-    new_letters = word
-    |> Enum.reduce(state.letters, &(replace_letter(&2, &1, index)))
-    |> surrounded(state.width, state.height)
+  def handle_call({:add_word, word, owner}, _from, state) do
     new_state =
       %{
         state |
-          letters: new_letters
+          letters: replace_letters(word, owner, state)
        }
     {:reply, new_state, new_state}
   end
@@ -116,6 +113,12 @@ defmodule Library.Board do
     end)
   end
 
+  defp replace_letters(word, owner, state) do
+    word
+    |> Enum.reduce(state.letters, &(replace_letter(&2, &1, owner)))
+    |> surround(state)
+  end
+
   defp replace_letter(tiles, letter, owner) do
     if Enum.at(tiles, letter.id).surrounded do
       tiles
@@ -124,10 +127,13 @@ defmodule Library.Board do
     end
   end
 
-  defp surrounded(tiles, width, height) do
+  defp surround(tiles, state) do
     tiles
     |> Enum.map(fn(letter) ->
-      %{letter | surrounded: Letter.surrounded(letter, tiles, width, height)}
+      %{
+        letter |
+          surrounded: Letter.surrounded(letter, tiles, state.width, state.height)
+      }
     end)
   end
 
