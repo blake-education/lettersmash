@@ -23,6 +23,7 @@ defmodule Library.GamePlayersTest do
 
   test "check if a player is in the game", %{game_players: game_players} do
     player = PlayerServer.find_or_create_player(%{id: 57, name: "tom", index: 3})
+    GamePlayers.add_player(game_players, player)
     assert GamePlayers.player_in_game(game_players, 57) == true
     assert GamePlayers.player_in_game(game_players, 59) == false
   end

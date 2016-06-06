@@ -118,11 +118,9 @@ defmodule Library.GamePlayers do
   end
 
   defp top_score(players) do
-    player = players
-    |> sort
-    |> List.first
-    |> Player.get_state
-    player.score
+    players
+    |> Enum.map(&(Player.get_state(&1).score))
+    |> Enum.max
   end
 
 end

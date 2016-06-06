@@ -66,4 +66,18 @@ defmodule Library.GameTest do
     assert length(state.wordlist) == 1
     assert List.first(state.wordlist).word == "CAVE"
   end
+
+  test "game has not started? if no words played", %{game: game} do
+    assert Game.started?(game) == false
+  end
+
+  test "game has started? if a word has been played", %{game: game} do
+    word = [%{letter: "C", id: 1, owner: 0, surrounded: false}, %{letter: "A", id: 2, owner: 0, surrounded: false}, %{letter: "R", id: 3, owner: 0, surrounded: false},%{letter: "E", id: 4, owner: 0, surrounded: false}]
+    Game.submit_word(game, word, "1")
+    assert Game.started?(game) == true
+  end
+
+  test "game is active if is not completed?", %{game: game} do
+    assert Game.active?(game) == true
+  end
 end

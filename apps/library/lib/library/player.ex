@@ -21,8 +21,8 @@ defmodule Library.Player do
     GenServer.call(pid, :id)
   end
 
-  def save_event(pid, winner, game_id) do
-    GenServer.call(pid, {:save_event, winner, game_id})
+  def save_event(pid, high_score, game_id) do
+    GenServer.call(pid, {:save_event, high_score, game_id})
   end
 
   def clear_score(pid) do
@@ -59,12 +59,12 @@ defmodule Library.Player do
     {:reply, state.id, state}
   end
 
-  def handle_call({:save_event, winner_id, game_id}, _from, state) do
+  def handle_call({:save_event, high_score, game_id}, _from, state) do
     Repo.insert(struct(Skateboard.Event,
       user_id: state.id,
       game_id: game_id,
       score: state.score,
-      winner: state.id == winner_id
+      winner: state.score == high_score
     ))
     new_state =
       %{
