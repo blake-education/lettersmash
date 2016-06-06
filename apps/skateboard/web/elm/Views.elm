@@ -2,6 +2,7 @@ module Views exposing (..)
 
 import Debug exposing (..)
 import Types exposing (..)
+import Actions exposing (..)
 import Models exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)

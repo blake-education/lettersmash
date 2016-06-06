@@ -2,6 +2,7 @@ port module GameBoard exposing (..)
 
 import Debug exposing (..)
 import Types exposing (..)
+import Actions exposing (..)
 import Models exposing (..)
 import Views exposing (..)
 import Html exposing (..)
