@@ -41,6 +41,13 @@ defmodule Library.GameServer do
   end
 
   @doc """
+  returns Games that have not finished
+  """
+  def active_games do
+    Enum.find &(Game.active?(&1))
+  end
+
+  @doc """
   returns all Games
   """
   def game_names do
