@@ -59,6 +59,12 @@ defmodule Library.GameTest do
     assert state.game_over == false
   end
 
+  test "stats for the lobby", %{game: game} do
+    stats = Game.stats(game)
+    assert assert stats[:players] == 1
+    assert assert stats[:started] == false
+  end
+
   test "words are added to the wordlist when played", %{game: game} do
     word = [%{letter: "C", id: 1, owner: 0, surrounded: false}, %{letter: "A", id: 2, owner: 0, surrounded: false}, %{letter: "V", id: 3, owner: 0, surrounded: false},%{letter: "E", id: 4, owner: 0, surrounded: false}]
     Game.submit_word(game, word, "1")

@@ -44,7 +44,8 @@ defmodule Library.GameServer do
   returns Games that have not finished
   """
   def active_games do
-    Enum.find &(Game.active?(&1))
+    games
+    |> Enum.filter &(Game.active?(&1))
   end
 
   @doc """
@@ -54,6 +55,15 @@ defmodule Library.GameServer do
     __MODULE__
     |> Supervisor.which_children
     |> Enum.map(fn({_, child, _, _}) -> Game.name(child) end)
+  end
+
+  @doc """
+  returns stats for games
+  """
+  def stats do
+    # active_games
+    games
+    |> Enum.map &(Game.stats(&1))
   end
 
   ###

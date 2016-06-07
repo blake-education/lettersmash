@@ -64,4 +64,14 @@ defmodule Library.GamePlayersTest do
     assert length(display) == 2
   end
 
+  test "return the count of players", %{game_players: game_players} do
+    player = PlayerServer.find_or_create_player(%{id: 57, name: "tom", index: 3})
+    GamePlayers.add_player(game_players, player)
+    player = PlayerServer.find_or_create_player(%{id: 5, name: "bill", index: 4})
+    GamePlayers.add_player(game_players, player)
+    display = GamePlayers.display(game_players)
+    assert GamePlayers.count(game_players) == 2
+    
+  end
+
 end

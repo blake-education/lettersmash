@@ -29,6 +29,7 @@ defmodule Library.Game do
   def name(pid), do: GenServer.call(pid, :name)
   def submit_word(pid, word, player), do: GenServer.call(pid, {:submit_word, word, player})
   def display_state(pid), do: GenServer.call(pid, :display_state)
+  def stats(pid), do: GenServer.call(pid, :stats)
   def list_state(pid), do: GenServer.call(pid, :list_state)
   def started?(pid), do: GenServer.call(pid, :started?)
   def active?(pid), do: GenServer.call(pid, :active?)
@@ -89,13 +90,23 @@ defmodule Library.Game do
     {:reply, model, state}
   end
 
+  def handle_call(:stats, _from, state) do
+    model =
+      %{
+        name: state.name,
+        game_id: state.game_id,
+        players: GamePlayers.count(state.players),
+        started: started(state)
+      }
+    {:reply, model, state}
+  end
+
   def handle_call(:name, _from, state) do
     {:reply, state[:name], state}
   end
 
   def handle_call(:started?, _from, state) do
-    started = !Enum.empty?(Wordlist.words(state.wordlist))
-    {:reply, started, state}
+    {:reply, started(state), state}
   end
 
   def handle_call(:active?, _from, state) do
@@ -151,6 +162,10 @@ defmodule Library.Game do
     if Board.completed?(state.board) do
       GamePlayers.save_events(state.players, state.game_id)
     end
+  end
+
+  defp started(state) do
+    !Enum.empty?(Wordlist.words(state.wordlist))
   end
 
 end
