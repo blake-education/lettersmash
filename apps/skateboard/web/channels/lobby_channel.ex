@@ -8,23 +8,17 @@ defmodule Skateboard.LobbyChannel do
   end
 
   def handle_in("game_list", payload, socket) do
-    names = GameServer.game_names()
-    games = Enum.map(names, fn(name) -> %{name: name} end)
-    push(socket, "games", %{games: games})
+    broadcast!(socket, "games", %{games: GameServer.stats})
     {:reply, {:ok, payload}, socket}
   end
 
   def handle_in("new_game", payload, socket) do
     GameServer.add_game("test")
-    names = GameServer.game_names()
-    games = Enum.map(names, fn(name) -> %{name: name} end)
-    push(socket, "games", %{games: games})
+    broadcast!(socket, "games", %{games: GameServer.stats})
     {:reply, {:ok, payload}, socket}
   end
 
   def handle_in("join_game", payload, socket) do
-    IO.puts "lobby join_game"
-    IO.inspect payload
     #GameServer.add_game("test")
     #push(socket, "games", %{games: GameServer.game_names})
     {:reply, {:ok, %{name: payload}}, socket}
