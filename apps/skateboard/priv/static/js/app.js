@@ -8532,7 +8532,8 @@ var _blake_education$lettersmash$Views$listGame = function (game) {
 				_elm_lang$html$Html$a,
 				_elm_lang$core$Native_List.fromArray(
 					[
-						_elm_lang$html$Html_Attributes$href(game.game_id)
+						_elm_lang$html$Html_Attributes$href(
+						A2(_elm_lang$core$Basics_ops['++'], '/game/#/play/', game.game_id))
 					]),
 				_elm_lang$core$Native_List.fromArray(
 					[
