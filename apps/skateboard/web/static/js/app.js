@@ -34,22 +34,28 @@ function enterLobby() {
     .receive("ok", resp => {
       console.log("Lobby joined successfully", resp);
       elmApp.ports.navigate.send("#/lobby");
+
       channel.push("game_list");
+
       elmApp.ports.newGame.subscribe( function(game_name) {
         console.log("New game " + game_name);
         channel.push("new_game");
       });
+
       elmApp.ports.joinGame.subscribe( function(game_name) {
         console.log("Joining game " + game_name);
+        channel.leave();
         let gameChannel = joinGame(game_name);
         channel.push("join_game", game_name);
         elmApp.ports.navigate.send("/#/game");
         gameChannel.push("board_state")
       });
+
       channel.on("games", games => {
-        console.log("games: ", games);
+        console.log("games recieved from server: ", games.games);
         elmApp.ports.games.send(games.games);
       });
+
     })
     .receive("error", resp => { console.log("Unable to join", resp) })
 };
@@ -96,6 +102,7 @@ function joinGame(name) {
   elmApp.ports.leaveGame.subscribe( function(message) {
     console.log("leaveGame");
     channel.leave();
+    enterLobby();
     elmApp.ports.navigate.send("#/lobby");
   });
   return channel;
