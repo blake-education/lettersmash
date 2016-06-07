@@ -242,9 +242,8 @@ listGame game =
     []
     [ button
         [ class "btn", Events.onClick (JoinGame game.name)]
-        -- [text ("Join " ++ game.name)]
         [text ("Join " ++ game.name ++ " (" ++ toString(game.players) ++ ")")]
-    , a [ href game.game_id ] [ text "Link" ]
+    , a [ href ("/game/#/play/" ++ game.game_id) ] [ text "Link" ]
     ]
 
 help : Bool -> Html Msg
