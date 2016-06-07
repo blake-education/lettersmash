@@ -1,4 +1,8 @@
 <h2>Welcome to LettersMash</h2>
-<p>
-  Register or login to play.
-</p>
+<%= if logged_in?(@conn) do %>
+  <h4><%= link "Play",    to: "/game" %></h4>
+<% else %>
+  <p>
+    Register or login to play.
+  </p>
+<% end %>
