@@ -3722,9 +3722,10 @@ var _blake_education$lettersmash$Models$initialModel = {
 		[]),
 	help: false
 };
-var _blake_education$lettersmash$Models$Game = function (a) {
-	return {name: a};
-};
+var _blake_education$lettersmash$Models$Game = F4(
+	function (a, b, c, d) {
+		return {game_id: a, name: b, players: c, started: d};
+	});
 var _blake_education$lettersmash$Models$Letter = F4(
 	function (a, b, c, d) {
 		return {letter: a, id: b, owner: c, surrounded: d};
@@ -8513,7 +8514,29 @@ var _blake_education$lettersmash$Views$listGame = function (game) {
 				_elm_lang$core$Native_List.fromArray(
 					[
 						_elm_lang$html$Html$text(
-						A2(_elm_lang$core$Basics_ops['++'], 'Join ', game.name))
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							'Join ',
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								game.name,
+								A2(
+									_elm_lang$core$Basics_ops['++'],
+									' (',
+									A2(
+										_elm_lang$core$Basics_ops['++'],
+										_elm_lang$core$Basics$toString(game.players),
+										')')))))
+					])),
+				A2(
+				_elm_lang$html$Html$a,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$href(game.game_id)
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text('Link')
 					]))
 			]));
 };
@@ -9948,7 +9971,7 @@ var _blake_education$lettersmash$GameBoard$update = F2(
 				return {
 					ctor: '_Tuple2',
 					_0: model,
-					_1: _elm_lang$navigation$Navigation$newUrl('#/lobby')
+					_1: _elm_lang$navigation$Navigation$newUrl('/#/lobby')
 				};
 			case 'LeaveGame':
 				return {
@@ -9975,6 +9998,12 @@ var _blake_education$lettersmash$GameBoard$update = F2(
 					ctor: '_Tuple2',
 					_0: model,
 					_1: _blake_education$lettersmash$GameBoard$joinGame(_p1._0)
+				};
+			case 'CreateGame':
+				return {
+					ctor: '_Tuple2',
+					_0: model,
+					_1: _blake_education$lettersmash$GameBoard$newGame('test')
 				};
 			case 'UpdateBoard':
 				return {
@@ -10046,12 +10075,6 @@ var _blake_education$lettersmash$GameBoard$update = F2(
 						{errorMessage: _p1._0}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
-			case 'CreateGame':
-				return {
-					ctor: '_Tuple2',
-					_0: model,
-					_1: _blake_education$lettersmash$GameBoard$newGame('test')
-				};
 			default:
 				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 		}
@@ -10061,10 +10084,25 @@ var _blake_education$lettersmash$GameBoard$games = _elm_lang$core$Native_Platfor
 	_elm_lang$core$Json_Decode$list(
 		A2(
 			_elm_lang$core$Json_Decode$andThen,
-			A2(_elm_lang$core$Json_Decode_ops[':='], 'name', _elm_lang$core$Json_Decode$string),
-			function (name) {
-				return _elm_lang$core$Json_Decode$succeed(
-					{name: name});
+			A2(_elm_lang$core$Json_Decode_ops[':='], 'game_id', _elm_lang$core$Json_Decode$string),
+			function (game_id) {
+				return A2(
+					_elm_lang$core$Json_Decode$andThen,
+					A2(_elm_lang$core$Json_Decode_ops[':='], 'name', _elm_lang$core$Json_Decode$string),
+					function (name) {
+						return A2(
+							_elm_lang$core$Json_Decode$andThen,
+							A2(_elm_lang$core$Json_Decode_ops[':='], 'players', _elm_lang$core$Json_Decode$int),
+							function (players) {
+								return A2(
+									_elm_lang$core$Json_Decode$andThen,
+									A2(_elm_lang$core$Json_Decode_ops[':='], 'started', _elm_lang$core$Json_Decode$bool),
+									function (started) {
+										return _elm_lang$core$Json_Decode$succeed(
+											{game_id: game_id, name: name, players: players, started: started});
+									});
+							});
+					});
 			})));
 var _blake_education$lettersmash$GameBoard$boardState = _elm_lang$core$Native_Platform.incomingPort(
 	'boardState',
@@ -14653,20 +14691,25 @@ function enterLobby() {
   channel.join().receive("ok", function (resp) {
     console.log("Lobby joined successfully", resp);
     elmApp.ports.navigate.send("#/lobby");
+
     channel.push("game_list");
+
     elmApp.ports.newGame.subscribe(function (game_name) {
       console.log("New game " + game_name);
       channel.push("new_game");
     });
+
     elmApp.ports.joinGame.subscribe(function (game_name) {
       console.log("Joining game " + game_name);
+      channel.leave();
       var gameChannel = joinGame(game_name);
       channel.push("join_game", game_name);
       elmApp.ports.navigate.send("/#/game");
       gameChannel.push("board_state");
     });
+
     channel.on("games", function (games) {
-      console.log("games: ", games);
+      console.log("games recieved from server: ", games.games);
       elmApp.ports.games.send(games.games);
     });
   }).receive("error", function (resp) {
@@ -14716,6 +14759,7 @@ function joinGame(name) {
   elmApp.ports.leaveGame.subscribe(function (message) {
     console.log("leaveGame");
     channel.leave();
+    enterLobby();
     elmApp.ports.navigate.send("#/lobby");
   });
   return channel;
