@@ -2,15 +2,22 @@ module Models exposing (..)
 
 import Types exposing (..)
 
+
 type alias Status =
   String
 
 
 type alias Game =
-  { name : String }
+  { game_id: String
+  , name : String
+  , players : Int
+  , started : Bool
+  }
+
 
 type alias Games =
   List Game
+
 
 type alias Letter =
   { letter : String

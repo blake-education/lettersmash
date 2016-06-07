@@ -48,7 +48,7 @@ update msg model =
 
     BackToLobby ->
       ( model
-      , newUrl "#/lobby"
+      , newUrl "/#/lobby"
       )
 
     LeaveGame ->
@@ -69,6 +69,11 @@ update msg model =
     JoinGame gameName ->
       ( model
       , joinGame gameName
+      )
+
+    CreateGame ->
+      ( model
+      , newGame "test"
       )
 
     UpdateBoard boardState ->
@@ -108,11 +113,6 @@ update msg model =
     SubmitFailed errorMessage ->
       ( { model | errorMessage = errorMessage }
       , Cmd.none
-      )
-
-    CreateGame ->
-      ( model
-      , newGame "test"
       )
 
     _ ->
@@ -159,8 +159,6 @@ urlUpdate url model =
         ( { model | currentPage = GamePage }, Cmd.none )
     else
         ( { model | currentPage = LobbyPage }, Cmd.none )
-    --else
-        --( { model | currentPage = SplashPage }, Cmd.none )
 
 
 

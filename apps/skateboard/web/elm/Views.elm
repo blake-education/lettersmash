@@ -37,9 +37,6 @@ view model =
     GamePage ->
       gameView model
 
-    --SplashPage ->
-      --div [] [ Html.App.map SplashMsg SplashView.view ]
-
     _ ->
         h1 [] [ text "Page not implemented!" ]
 
@@ -245,7 +242,9 @@ listGame game =
     []
     [ button
         [ class "btn", Events.onClick (JoinGame game.name)]
-        [text ("Join " ++ game.name)]
+        -- [text ("Join " ++ game.name)]
+        [text ("Join " ++ game.name ++ " (" ++ toString(game.players) ++ ")")]
+    , a [ href game.game_id ] [ text "Link" ]
     ]
 
 help : Bool -> Html Msg
