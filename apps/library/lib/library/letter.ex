@@ -20,7 +20,7 @@ defmodule Library.Letter do
   def owned?(letter), do: letter.owner != 0
   defp owners_match(letter, other), do: letter.owner == other.owner
 
-  def above(letter, board, width, height) do
+  def above(letter, board, width, _) do
     cond do
       top_row(letter.id, width) -> true
       true ->
@@ -29,7 +29,7 @@ defmodule Library.Letter do
     end
   end
 
-  def left(letter, board, width, height) do
+  def left(letter, board, width, _) do
     cond do
       left_row(letter.id, width) -> true
       true ->
@@ -47,7 +47,7 @@ defmodule Library.Letter do
     end
   end
 
-  def right(letter, board, width, height) do
+  def right(letter, board, width, _) do
     cond do
       right_row(letter.id, width) -> true
       true ->

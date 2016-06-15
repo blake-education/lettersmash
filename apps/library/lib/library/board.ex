@@ -68,14 +68,11 @@ defmodule Library.Board do
     {:reply, complete, state}
   end
 
-  def handle_call({:add_word, word, index}, _from, state) do
-    new_letters = word
-    |> Enum.reduce(state.letters, &(replace_letter(&2, &1, index)))
-    |> surrounded(state.width, state.height)
+  def handle_call({:add_word, word, owner}, _from, state) do
     new_state =
       %{
         state |
-          letters: new_letters
+          letters: replace_letters(word, owner, state)
        }
     {:reply, new_state, new_state}
   end
@@ -116,23 +113,27 @@ defmodule Library.Board do
     end)
   end
 
-  defp replace_letter(letters, letter, owner) do
-    index = letter.id
-    current_letter = Enum.at(letters, letter.id)
-    if current_letter.surrounded do
-      letters
+  defp replace_letters(word, owner, state) do
+    word
+    |> Enum.reduce(state.letters, &(replace_letter(&2, &1, owner)))
+    |> surround(state)
+  end
+
+  defp replace_letter(tiles, letter, owner) do
+    if Enum.at(tiles, letter.id).surrounded do
+      tiles
     else
-      List.replace_at(letters, letter.id, %{letter | owner: owner})
+      List.replace_at(tiles, letter.id, %{letter | owner: owner})
     end
   end
 
-  @doc """
-  traverse letters, marking as surrounded if all neighbours have same owner
-  """
-  defp surrounded(letters, width, height) do
-    letters
+  defp surround(tiles, state) do
+    tiles
     |> Enum.map(fn(letter) ->
-      %{letter | surrounded: Letter.surrounded(letter, letters, width, height)}
+      %{
+        letter |
+          surrounded: Letter.surrounded(letter, tiles, state.width, state.height)
+      }
     end)
   end
 

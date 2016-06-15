@@ -6,3 +6,6 @@ erl_crash.dump
 .DS_Store
 elm-stuff
 doc/
+.-rplugin~
+tags
+.#*

@@ -39,7 +39,7 @@ defmodule Library.Wordlist do
   end
 
   def init(:ok) do
-    {:ok, [] }
+    {:ok, []}
   end
 
   def handle_call(:words, _from, state) do
@@ -47,18 +47,21 @@ defmodule Library.Wordlist do
   end
 
   def handle_call({:played?, word}, _from, state) do
-    w = Enum.reduce(word, "", &(&2 <> &1.letter))
-    played = Enum.any?(state, &(&1.word == w))
+    played = Enum.any?(state, &(&1.word == word_string(word)))
     {:reply, played, state}
   end
 
-  def handle_cast(:clear, state) do
+  def handle_cast(:clear, _) do
     {:noreply, []}
   end
 
   def handle_cast({:add, word, player}, state) do
-    w = Enum.reduce(word, "", &(&2 <> &1.letter))
-    {:noreply, List.insert_at(state, 0, %{word: w, played_by: player.index})}
+    new_state = List.insert_at(state, 0, %{word: word_string(word), played_by: player.index})
+    {:noreply, new_state}
+  end
+
+  defp word_string(word) do
+    Enum.reduce(word, "", &(&2 <> &1.letter))
   end
 
 end

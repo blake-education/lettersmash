@@ -1,8 +1,22 @@
 module Models exposing (..)
 
+import Types exposing (..)
+
 
 type alias Status =
   String
+
+
+type alias Game =
+  { game_id: String
+  , name : String
+  , players : Int
+  , started : Bool
+  }
+
+
+type alias Games =
+  List Game
 
 
 type alias Letter =
@@ -38,6 +52,7 @@ type alias BoardState =
   , players : List Player
   , wordlist : List Word
   , game_over : Bool
+  , name : String
   }
 
 
@@ -53,6 +68,9 @@ type alias Model =
   { candidate : Candidate
   , boardState : BoardState
   , errorMessage : String
+  , currentPage : Page
+  , games : Games
+  , help : Bool
   }
 
 
@@ -64,7 +82,11 @@ initialModel =
       , players = []
       , wordlist = []
       , game_over = False
+      , name = ""
       }
   , errorMessage = ""
+  , currentPage = LobbyPage
+  , games = []
+  , help = False
   }
 

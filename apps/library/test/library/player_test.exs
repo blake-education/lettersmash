@@ -39,21 +39,29 @@ defmodule Library.PlayerTest do
     state = Player.update_score(player, 10)
     Player.clear_score(player)
     state = Player.get_state(player)
-    assert state.score == 0 
+    assert state.score == 0
   end
 
   test "can update a player's score", %{player: player} do
     Player.update_score(player, 20)
     state = Player.get_state(player)
-    assert state.score == 20 
+    assert state.score == 20
   end
 
   test "can save an event", %{player: player} do
     Player.update_score(player, 17)
-    state = Player.save_event(player, 1, "game 1")
-    assert state.total_score == 17 
-    assert state.games_played == 1 
-    assert state.games_won == 1 
+    state = Player.save_event(player, 20, "game 1")
+    assert state.total_score == 17
+    assert state.games_played == 1
+    assert state.games_won == 0
+  end
+
+  test "if player score is high_score they are a winner", %{player: player} do
+    Player.update_score(player, 20)
+    state = Player.save_event(player, 20, "game 1")
+    assert state.total_score == 20
+    assert state.games_played == 1
+    assert state.games_won == 1
   end
 
   #test "hydrates a player from events" do

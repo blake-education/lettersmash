@@ -11,7 +11,7 @@ defmodule Skateboard.SessionController do
         conn
         |> put_session(:current_user, user.id)
         |> put_flash(:info, "Logged in")
-        |> redirect(to: "/")
+        |> redirect(to: "/game/#/lobby")
       :error ->
         conn
         |> put_flash(:info, "Wrong name or password")

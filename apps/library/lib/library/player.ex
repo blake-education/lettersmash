@@ -7,7 +7,6 @@ defmodule Library.Player do
   use GenServer
 
   alias Skateboard.{Repo,Event}
-  alias Library.{Player,Game}
   import Ecto.Query, only: [from: 2]
 
   def start_link(player) do
@@ -22,8 +21,8 @@ defmodule Library.Player do
     GenServer.call(pid, :id)
   end
 
-  def save_event(pid, winner, game_id) do
-    GenServer.call(pid, {:save_event, winner, game_id})
+  def save_event(pid, high_score, game_id) do
+    GenServer.call(pid, {:save_event, high_score, game_id})
   end
 
   def clear_score(pid) do
@@ -32,6 +31,10 @@ defmodule Library.Player do
 
   def update_score(pid, score) do
     GenServer.cast(pid, {:update_score, score})
+  end
+
+  def hydrate(pid) do
+    GenServer.call(pid, :hydrate)
   end
 
   def init(%{id: id, name: name, index: index}) do
@@ -56,13 +59,13 @@ defmodule Library.Player do
     {:reply, state.id, state}
   end
 
-  def handle_call({:save_event, winner_id, game_id}, _from, state) do
-    Repo.insert(%Skateboard.Event{
+  def handle_call({:save_event, high_score, game_id}, _from, state) do
+    Repo.insert(struct(Skateboard.Event,
       user_id: state.id,
       game_id: game_id,
       score: state.score,
-      winner: state.id == winner_id
-    })
+      winner: state.score == high_score
+    ))
     new_state =
       %{
         state |
@@ -73,13 +76,16 @@ defmodule Library.Player do
     {:reply, new_state, new_state}
   end
 
-  #def hydrate(player) do
-    #%Player{player |
-      #total_score: Player.total_score(player.id) || 0,
-      #games_played: Player.games_played(player.id) || 0,
-      #games_won: Player.games_won(player.id) || 0
-    #}
-  #end
+  def handle_call(:hydrate, _from, state) do
+    new_state =
+      %{
+        state |
+          total_score: total_score(state.id) || 0,
+          games_played: games_played(state.id) || 0,
+          games_won: games_won(state.id) || 0
+      }
+    {:reply, new_state, new_state}
+  end
 
   def handle_cast(:clear_score, state) do
     {:noreply, Map.put(state, :score, 0)}
