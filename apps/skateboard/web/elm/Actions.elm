@@ -4,13 +4,19 @@ import Models exposing (..)
 
 type Msg
   = NoOp
+  | GamesList Games
+  | CreateGame
+  | JoinGame String
+  | NewBoard
+  | BackToLobby
+  | LeaveGame
   | Select Letter
   | Submit
   | Clear
   | Backspace
-  | UpdateBoard BoardState
   | GameOver String
   | SubmitSuccess String
   | SubmitFailed String
-  | RequestNewGame
+  | UpdateBoard BoardState
+  | Navigate String
 

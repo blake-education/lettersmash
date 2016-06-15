@@ -7,3 +7,5 @@ erl_crash.dump
 elm-stuff
 doc/
 tags
+.-rplugin~
+.#*

@@ -27,7 +27,8 @@ defmodule Library.Dictionary do
   end
 
   def handle_call({:invalid?, word}, _from, dictionary) do
-    w = Enum.reduce(word, "", &(&2 <> &1.letter))
+    w = word
+    |> Enum.reduce("", &(&2 <> &1.letter))
     |> String.downcase
     {:reply, !Enum.member?(dictionary, w), dictionary}
   end

@@ -7,10 +7,10 @@ defmodule Library do
     import Supervisor.Spec, warn: false
 
     children = [
-      worker(Library.Dictionary, [[], [name: :dictionary]]),
       # Define workers and child supervisors to be supervised
       supervisor(Library.GameServer, []),
-      supervisor(Library.PlayerServer, [])
+      supervisor(Library.PlayerServer, []),
+      worker(Library.Dictionary, [[], [name: :dictionary]])
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html

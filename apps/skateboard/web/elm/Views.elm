@@ -1,5 +1,7 @@
 module Views exposing (..)
 
+import Debug exposing (..)
+import Types exposing (..)
 import Actions exposing (..)
 import Models exposing (..)
 import Html exposing (..)
@@ -26,9 +28,21 @@ colors =
   , "#ff1654"
   ]
 
-
 view : Model -> Html Msg
 view model =
+  case (log "model.currentPage" model.currentPage) of
+    LobbyPage ->
+      lobbyView model
+
+    GamePage ->
+      gameView model
+
+    _ ->
+        h1 [] [ text "Page not implemented!" ]
+
+
+gameView : Model -> Html Msg
+gameView model =
   div
     [ class "outer"]
     [ div
@@ -46,34 +60,34 @@ view model =
       , div
         [ class "col-md-4" ]
         [ button
-          [ class "btn btn", disabled (not model.boardState.game_over), Events.onClick RequestNewGame ]
-          [ text "New Game" ]
+          [ class "btn btn-primary btn-default", disabled (not model.boardState.game_over), Events.onClick NewBoard ]
+          [ text "Play again" ]
         ]
     ]
     , div
       [ class "row" ]
       [ div
-        [ class "board col-md-12" ]
-        (List.map (boardRow model.candidate) model.boardState.board)
-      ]
-    , buttons model
-    , div
-      [ class "row" ]
-      [ div
-        [ class "board col-md-12" ]
-        [h2
-          [ class "candidate" ]
-          (List.map candidateLetterView model.candidate)
-        ]
-      ]
-    , div
-      [ class "row" ]
-      [ div
-          [ class "col-md-4" ]
+          [ class "col-md-3" ]
           (List.map playerView model.boardState.players)
       , div
-          [ class "col-md-8" ]
-          (List.map wordlistView model.boardState.wordlist)
+        [ class "board col-md-6" ]
+        [ h3
+          []
+          [ text model.boardState.name]
+        , div
+          []
+          (List.map (boardRow model.candidate) model.boardState.board)
+        , buttons model
+        , div
+          [ class "board col-md-12" ]
+          [h2
+            [ class "candidate" ]
+            (List.map candidateLetterView model.candidate)
+          ]
+        ]
+      , div
+          [ class "col-md-3" ]
+          (List.map wordView model.boardState.wordlist)
       ]
     ]
 
@@ -96,6 +110,9 @@ buttons model =
         , button
             [ class "btn btn-primary", disabled (hideSubmit model.candidate), Events.onClick Submit ]
             [ text "Submit" ]
+      , button
+          [ class "btn btn-default", Events.onClick LeaveGame ]
+          [ text "Lobby" ]
         ]
       ]
     ]
@@ -126,25 +143,30 @@ playerBadge : Player -> Html msg
 playerBadge player =
   div
     [class "player", backgroundStyle player.index]
-    [ div
-      [class "name"]
-      [text (player.name ++ " " ++ toString (player.score))]
-    , span
-      [class "total"]
-      [text ("Points: " ++ toString (player.total_score))]
-    , span
-      [class "total"]
-      [text ("Won: " ++ toString (player.games_won))]
-    , span
-      [class "total"]
-      [text ("Played: " ++ toString (player.games_played))]
+    [ div [class "clearfix"]
+      [ span
+        [class "name"]
+        [text player.name]
+      , span
+        [class "score"]
+        [text (toString player.score)]
+      ]
+    --, span
+      --[class "total"]
+      --[text ("Points: " ++ toString (player.total_score))]
+    --, span
+      --[class "total"]
+      --[text ("Won: " ++ toString (player.games_won))]
+    --, span
+      --[class "total"]
+      --[text ("Played: " ++ toString (player.games_played))]
     ]
 
-wordlistView : Word -> Html msg
-wordlistView word  =
+wordView : Word -> Html msg
+wordView word  =
   div
     [ backgroundStyle word.played_by ]
-    [ h4 [] [ text word.word ] ]
+    [ h4 [class "word"] [ text word.word ] ]
 
 
 boardRow : Candidate -> BoardRow -> Html Msg
@@ -186,8 +208,7 @@ flash model =
     span [] []
   else
     div
-      [ class "col-md-12 alert alert-warning"
-      ]
+      [ class "col-md-12 alert alert-warning" ]
       [ text model.errorMessage ]
 
 
@@ -202,3 +223,43 @@ colourFromList index =
 letterSelected : Letter -> Candidate ->  Bool
 letterSelected letter candidate =
   List.any (\c -> letter.id == c.id) candidate
+
+lobbyView : Model -> Html Msg
+lobbyView model =
+  div []
+    [
+      help model.help
+    , h2 [] [text ("Games")]
+      , div [] (List.map listGame model.games)
+      , button
+        [ class "btn", Events.onClick CreateGame]
+        [ text "Create Game" ]
+    ]
+
+listGame : Game -> Html Msg
+listGame game =
+  p
+    []
+    [ button
+        [ class "btn", Events.onClick (JoinGame game.name)]
+        [text ("Join " ++ game.name ++ " (" ++ toString(game.players) ++ ")")]
+    , a [ href ("/game/#/play/" ++ game.game_id) ] [ text "Link" ]
+    ]
+
+help : Bool -> Html Msg
+help show =
+  div []
+    [
+      div [ class "help", disabled show ]
+        [
+          h3 [] [text ("How to play:")]
+          , p []
+            [ text("Form words of 4 letters or more from letters on the board.")]
+          , p []
+            [ text("Surrounding a letter with your colour stops opponents from capturing them.")]
+          , p []
+            [ text("The game ends when every letter has a colour.")]
+          , p []
+            [ text("The winner is the player with the most territory when the game ends.")]
+        ]
+    ]

@@ -15,7 +15,7 @@ defmodule Skateboard.RegistrationController do
         conn
         |> put_session(:current_user, changeset.id)
         |> put_flash(:info, "Your account was created")
-        |> redirect(to: "/")
+        |> redirect(to: "/game/#/lobby")
       {:error, changeset} ->
         conn
         |> put_flash(:info, "Unable to create account")

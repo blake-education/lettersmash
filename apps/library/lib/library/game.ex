@@ -1,8 +1,13 @@
 defmodule Library.Game do
   use GenServer
-  alias Library.{Board,Dictionary,Player,Wordlist,PlayerServer,GamePlayers}
+  alias Library.{GameServer,Board,Dictionary,Player,Wordlist,GamePlayers,Game}
 
   @moduledoc """
+    The Game module contains all entities required for one game:
+
+    Board
+    WordList
+    Players
 
     _Example_
     iex> Library.Game.add_player(pid, %{id: 1, name: "abc"})
@@ -19,32 +24,18 @@ defmodule Library.Game do
     %{board: [], players: [%{id: 1, name: "abc"}]}
   """
 
-  def start_link(name) do
-    GenServer.start_link(__MODULE__, name, name: :"#{name}")
-  end
+  def start_link(name), do: GenServer.start_link(__MODULE__, name, name: :"#{name}")
 
-  def submit_word(pid, word, player) do
-    GenServer.call(pid, {:submit_word, word, player})
-  end
-
-  def new_game(pid) do
-    GenServer.cast(pid, :new_game)
-  end
-
-  def add_player(pid, player) do
-    GenServer.cast(pid, {:add_player, player})
-  end
-
-  #def remove_player(pid, player) when is_map(player) do
-    #GenServer.cast(pid, {:remove_player, player})
-  #end
-
-  def name(pid) do
-    GenServer.call(pid, :name)
-  end
-
+  def name(pid), do: GenServer.call(pid, :name)
+  def submit_word(pid, word, player), do: GenServer.call(pid, {:submit_word, word, player})
   def display_state(pid), do: GenServer.call(pid, :display_state)
+  def stats(pid), do: GenServer.call(pid, :stats)
   def list_state(pid), do: GenServer.call(pid, :list_state)
+  def started?(pid), do: GenServer.call(pid, :started?)
+  def active?(pid), do: GenServer.call(pid, :active?)
+  def new_board(pid), do: GenServer.cast(pid, :new_board)
+  def add_player(pid, player), do: GenServer.cast(pid, {:add_player, player})
+  #def remove_player(pid, player), when is_map(player) do: GenServer.cast(pid, {:remove_player, player})
 
   def init(name) do
     {:ok, board} = Board.start_link(5, 5)
@@ -58,7 +49,7 @@ defmodule Library.Game do
         board: board,
         wordlist: wordlist,
         players: game_players,
-        game_over: false,
+        game_over: Board.completed?(board),
         next_index: 1
       }
     }
@@ -73,14 +64,7 @@ defmodule Library.Game do
       state.game_over ->
         {:reply, {:error, "Game Over"}, state}
       true ->
-        player = find_player(state.players, String.to_integer(player_id))
-        player_state = Player.get_state(player)
-        Board.add_word(state.board, word, player_state.index)
-        Wordlist.add(state.wordlist, word, player_state)
-        GamePlayers.update_scores(state.players, state.board)
-        if Board.completed?(state.board) do
-          GamePlayers.save_events(state.players, state.game_id)
-        end
+        add_word(word, player_id, state)
         new_state =
           %{
             state |
@@ -95,21 +79,46 @@ defmodule Library.Game do
   end
 
   def handle_call(:display_state, _from, state) do
-    display_state =
+    model =
       %{
         state |
           board: Enum.chunk(Board.letters(state.board), 5),
           wordlist: Wordlist.words(state.wordlist),
           players: GamePlayers.display(state.players),
+          name: state.name
       }
-    {:reply, display_state, state}
+    {:reply, model, state}
+  end
+
+  def handle_call(:stats, _from, state) do
+    model =
+      %{
+        name: state.name,
+        game_id: state.game_id,
+        players: GamePlayers.count(state.players),
+        started: started(state)
+      }
+    {:reply, model, state}
+  end
+
+  def handle_call(:name, _from, state) do
+    {:reply, state[:name], state}
+  end
+
+  def handle_call(:started?, _from, state) do
+    {:reply, started(state), state}
+  end
+
+  def handle_call(:active?, _from, state) do
+    active = !Board.completed?(state.board)
+    {:reply, active, state}
   end
 
   def handle_cast({:add_player, player}, state) do
-    if find_player(state.players, player.id) do
+    if GamePlayers.player_in_game(state.players, player.id) do
       {:noreply, state}
     else
-      {:ok, new_player} = Library.PlayerServer.add_player(Map.put(player, :index, state.next_index))
+      new_player = Library.PlayerServer.find_or_create_player(Map.put(player, :index, state.next_index))
       GamePlayers.add_player(state.players, new_player)
       {
         :noreply,
@@ -130,7 +139,7 @@ defmodule Library.Game do
     }
   end
 
-  def handle_cast(:new_game, state) do
+  def handle_cast(:new_board, state) do
     Board.new_board(state.board)
     Wordlist.clear(state.wordlist)
     GamePlayers.clear_scores(state.players)
@@ -139,18 +148,24 @@ defmodule Library.Game do
       %{
         state |
           game_id: Ecto.UUID.generate,
-          game_over: false
+          game_over: Board.completed?(state.board)
       }
     }
   end
 
-  def handle_call(:name, _from, state) do
-    {:reply, state[:name], state}
+  defp add_word(word, player_id, state) do
+    player = GamePlayers.find_player(state.players, String.to_integer(player_id))
+    player_state = Player.get_state(player)
+    Board.add_word(state.board, word, player_state.index)
+    Wordlist.add(state.wordlist, word, player_state)
+    GamePlayers.update_scores(state.players, state.board)
+    if Board.completed?(state.board) do
+      GamePlayers.save_events(state.players, state.game_id)
+    end
   end
 
-  defp find_player(players, id) do
-    GamePlayers.find_player(players, id)
+  defp started(state) do
+    !Enum.empty?(Wordlist.words(state.wordlist))
   end
-
 
 end

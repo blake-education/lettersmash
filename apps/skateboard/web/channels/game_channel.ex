@@ -4,6 +4,7 @@ defmodule Skateboard.GameChannel do
   alias Library.{GameServer,Game}
 
   def join("game:" <> name, _message, socket) do
+    IO.puts "joining game #{name}"
     game = find_or_create_game(name)
     socket = assign(socket, :game_name, name)
 
@@ -34,9 +35,9 @@ defmodule Skateboard.GameChannel do
     {:reply, :ok, socket}
   end
 
-  def handle_in("new_game", payload, socket) do
+  def handle_in("new_board", payload, socket) do
     game = find_or_create_game(socket.assigns.game_name)
-    Game.new_game(game)
+    Game.new_board(game)
     broadcast_state(socket)
     {:reply, {:ok, payload}, socket}
   end
@@ -46,20 +47,23 @@ defmodule Skateboard.GameChannel do
     {:noreply, socket}
   end
 
+  def handle_info(_, socket) do
+    {:noreply, socket}
+  end
+
   defp broadcast_state(socket) do
     game = find_or_create_game(socket.assigns.game_name)
     broadcast!(socket, "board_state", Game.display_state(game))
   end
 
-  def handle_info(_, socket) do
-    {:noreply, socket}
-  end
-
   defp find_or_create_game(name) do
     game = GameServer.find_game name
+    IO.inspect game
     unless game do
+      IO.puts "game not found"
       {:ok, game} = GameServer.add_game(name)
     end
+    IO.inspect game
     game
   end
 

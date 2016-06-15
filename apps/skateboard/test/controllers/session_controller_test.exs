@@ -9,7 +9,7 @@ defmodule Skateboard.SessionControllerTest do
 
   test "allows users to log in", %{conn: conn} do
     conn = post conn, "/login", %{session: %{name: "Test", password: "Password"}}
-    assert redirected_to(conn) == page_path(conn, :index)
+    assert redirected_to(conn) == page_path(conn, :game)
   end
 
   test "does not allow users to sign in with invalid details", %{conn: conn} do
