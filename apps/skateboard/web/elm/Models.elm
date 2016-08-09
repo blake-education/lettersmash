@@ -1,6 +1,7 @@
 module Models exposing (..)
 
 import Types exposing (..)
+import Material
 
 
 type alias Status =
@@ -71,6 +72,7 @@ type alias Model =
   , currentPage : Page
   , games : Games
   , help : Bool
+  , mdl : Material.Model
   }
 
 
@@ -88,5 +90,6 @@ initialModel =
   , currentPage = LobbyPage
   , games = []
   , help = False
+  , mdl = Material.model
   }
 

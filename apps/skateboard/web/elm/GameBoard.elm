@@ -5,12 +5,10 @@ import Types exposing (..)
 import Actions exposing (..)
 import Models exposing (..)
 import Views exposing (..)
-import Html exposing (..)
-import Html.Attributes exposing (..)
-import Html.App as Html
 import String
 import List exposing (reverse, member, drop)
 import Navigation exposing (..)
+import Material
 
 
 main =

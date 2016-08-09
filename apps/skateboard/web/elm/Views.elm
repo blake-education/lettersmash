@@ -11,6 +11,10 @@ import String
 import List exposing (length, member)
 import Array exposing (fromList, get)
 import Json.Encode exposing (string)
+import Material
+import Material.Scheme
+import Material.Button as Button
+import Material.Options exposing (css)
 
 
 colors : List String

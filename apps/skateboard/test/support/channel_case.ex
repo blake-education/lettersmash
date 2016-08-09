@@ -32,10 +32,10 @@ defmodule Skateboard.ChannelCase do
   end
 
   setup tags do
-    unless tags[:async] do
-      Ecto.Adapters.SQL.restart_test_transaction(Skateboard.Repo, [])
-    end
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Skateboard.Repo)
 
-    :ok
+    unless tags[:async] do
+      Ecto.Adapters.SQL.Sandbox.mode(Skateboard.Repo, {:shared, self()})
+    end
   end
 end
